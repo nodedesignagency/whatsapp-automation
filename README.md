@@ -32,10 +32,38 @@ top of `css/styles.css`. Swapping in exact Figma values means editing that block
 only — nothing downstream hardcodes a colour.
 
 ```css
---brand: #16A34A;   --panel-w: 408px;
---brand-soft: #DCFCE7;   --sidebar-w: 236px;
---phone-scale: .58;      /* phone is built at 320px, scaled down to fit */
+--brand: #38AE6A;                    --line: #EEEFF1;
+--brand-soft: rgba(56,174,106,.10);  --panel-w: 396px;
+--phone-scale: .58;   /* phone is built at 320px, scaled down to fit */
 ```
+
+### Elevation
+
+Figma's six drop shadows are stacked into one token rather than applied
+separately — all six are `#2A3346` at 3–4%, and together they read as a single
+soft shadow:
+
+| Layer | Y | Blur | Spread | Opacity |
+|---|---|---|---|---|
+| `--sh-1` | 1 | 1 | -0.5 | 3% |
+| `--sh-2` | 2 | 2 | -1 | 4% |
+| `--sh-3` | 3 | 3 | -1.5 | 4% |
+| `--sh-4` | 5 | 5 | -2.5 | 3% |
+| `--sh-5` | 10 | 10 | -5 | 3% |
+| `--sh-6` | 24 | 24 | -8 | 3% |
+
+`--sh-md` is all six and is what raised surfaces use. `--sh-sm` is the first
+three, for small in-list elements where the 24px layer would muddy the stack.
+
+## Fonts
+
+**Open Runde** (SIL OFL 1.1) in four weights, self-hosted from
+`assets/fonts/`. License text ships alongside it.
+
+Note for the Next.js port: Apple's SF Pro / SF Pro Rounded cannot be used here.
+Apple's license covers designing and building interfaces for its own platforms
+and does not permit embedding the font in a web page. Open Runde is the
+open-licensed stand-in.
 
 ## Phone preview
 

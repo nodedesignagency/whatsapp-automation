@@ -1,3 +1,10 @@
+/* ---------------------------------------------------------------- fonts */
+/* Open Runde — SIL OFL 1.1, see assets/fonts/LICENSE.txt */
+@font-face{font-family:"Open Runde";src:url("../assets/fonts/OpenRunde-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:"Open Runde";src:url("../assets/fonts/OpenRunde-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:"Open Runde";src:url("../assets/fonts/OpenRunde-Semibold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"Open Runde";src:url("../assets/fonts/OpenRunde-Bold.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}
+
 /* =====================================================================
    WhatsApp Automation — Campaign Composer
    Static HTML/CSS front-end. Tokens live in :root so the Figma values
@@ -21,8 +28,8 @@
   --text-muted:    #8B8B8F;
   --text-faint:    #A1A1A6;
 
-  --line:          #ECECEC;
-  --line-strong:   #E2E2E2;
+  --line:          #EEEFF1;
+  --line-strong:   #E4E6EA;
 
   --dark:          #16161A;
 
@@ -35,18 +42,28 @@
   --r-2xl: 24px;
   --r-pill: 999px;
 
-  /* ---- elevation ---- */
-  --sh-sm: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
-  --sh-md: 0 2px 4px rgba(16,24,40,.04), 0 6px 16px rgba(16,24,40,.06);
-  --sh-lg: 0 8px 30px rgba(16,24,40,.08);
+  /* ---- elevation ----
+     The six stacked drop shadows from Figma, all #2A3346 at low opacity.
+     --sh-md is the full stack and is what most raised surfaces use;
+     --sh-sm is the first three layers for small in-list elements. */
+  --sh-1: 0 1px  1px  -0.5px rgba(42,51,70,.03);
+  --sh-2: 0 2px  2px  -1px   rgba(42,51,70,.04);
+  --sh-3: 0 3px  3px  -1.5px rgba(42,51,70,.04);
+  --sh-4: 0 5px  5px  -2.5px rgba(42,51,70,.03);
+  --sh-5: 0 10px 10px -5px   rgba(42,51,70,.03);
+  --sh-6: 0 24px 24px -8px   rgba(42,51,70,.03);
+
+  --sh-sm: var(--sh-1), var(--sh-2), var(--sh-3);
+  --sh-md: var(--sh-1), var(--sh-2), var(--sh-3), var(--sh-4), var(--sh-5), var(--sh-6);
+  --sh-lg: var(--sh-md);
 
   /* ---- layout ---- */
-  --sidebar-w: 236px;
-  --panel-w:   408px;
+  --sidebar-w: 244px;
+  --panel-w:   396px;
   --phone-w:   320px;
   --phone-scale: .58;
 
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font: "Open Runde", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -107,14 +124,16 @@ svg{ display:block; }
   align-items:center;
   gap:12px;
   height:52px;
-  padding:0 16px;
-  border-radius:var(--r-md);
+  padding:0 18px;
+  border:1px solid transparent;
+  border-radius:var(--r-pill);
   color:var(--text-body);
-  transition:background .15s ease;
+  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
-.nav-item:hover{ background:rgba(255,255,255,.6); }
+.nav-item:hover{ background:rgba(255,255,255,.65); }
 .nav-item.is-active{
   background:var(--bg-surface);
+  border-color:var(--line);
   box-shadow:var(--sh-md);
   color:var(--text-strong);
 }
@@ -131,7 +150,8 @@ svg{ display:block; }
   width:100%;
   padding:12px 14px;
   background:var(--bg-surface);
-  border-radius:var(--r-lg);
+  border:1px solid var(--line);
+  border-radius:var(--r-pill);
   box-shadow:var(--sh-md);
   text-align:left;
 }
@@ -148,7 +168,7 @@ svg{ display:block; }
   flex:1;
   min-width:0;
   display:flex;
-  gap:28px;
+  gap:24px;
   padding:14px;
   background:var(--bg-workspace);
   border-radius:var(--r-2xl);
@@ -165,7 +185,7 @@ svg{ display:block; }
   background:var(--bg-surface);
   border:1px solid var(--line);
   border-radius:var(--r-xl);
-  box-shadow:var(--sh-sm);
+  box-shadow:var(--sh-md);
   overflow:hidden;
 }
 
@@ -563,7 +583,7 @@ svg{ display:block; }
   grid-row:2;
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:12px;
   padding:14px 2px 16px;
 }
 
@@ -574,6 +594,7 @@ svg{ display:block; }
   gap:0;
   padding:4px 6px;
   background:var(--bg-surface);
+  border:1px solid var(--line);
   border-radius:var(--r-pill);
   box-shadow:var(--sh-md);
 }
@@ -591,10 +612,11 @@ svg{ display:block; }
   display:inline-flex;
   align-items:center;
   flex:0 0 auto;
-  gap:8px;
+  gap:7px;
   height:42px;
-  padding:0 16px;
+  padding:0 12px;
   background:var(--bg-surface);
+  border:1px solid var(--line);
   border-radius:var(--r-pill);
   box-shadow:var(--sh-md);
   font-size:14px;
@@ -606,18 +628,18 @@ svg{ display:block; }
 .pillbtn:hover{ background:#FBFBFB; }
 .pillbtn svg{ width:18px; height:18px; flex:0 0 18px; color:var(--text-body); }
 
-.actionbar__end{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+.actionbar__end{ margin-left:auto; display:flex; align-items:center; gap:10px; }
 
 .btn{
   height:42px;
-  padding:0 20px;
+  padding:0 18px;
   border-radius:var(--r-pill);
   font-size:14px;
   font-weight:500;
   white-space:nowrap;
   transition:background .15s ease, opacity .15s ease;
 }
-.btn--ghost{ color:var(--text-strong); }
+.btn--ghost{ padding:0 14px; color:var(--text-strong); }
 .btn--ghost:hover{ background:rgba(0,0,0,.04); }
 .btn--primary{
   background:var(--dark);
