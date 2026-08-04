@@ -4,9 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Campaign Composer — WhatsApp Automation</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -115,9 +112,12 @@
       </header>
 
       <div class="segmented" role="tablist" aria-label="Campaign status">
-        <button class="segmented__item" type="button" role="tab" aria-selected="false" data-status="draft">Draft</button>
-        <button class="segmented__item" type="button" role="tab" aria-selected="false" data-status="sent">Sent</button>
-        <button class="segmented__item is-active" type="button" role="tab" aria-selected="true" data-status="scheduled">Scheduled</button>
+        <div class="segmented__track" id="segTrack">
+          <span class="segmented__thumb" aria-hidden="true"></span>
+          <button class="segmented__item" type="button" role="tab" aria-selected="false" data-status="draft">Draft</button>
+          <button class="segmented__item" type="button" role="tab" aria-selected="false" data-status="sent">Sent</button>
+          <button class="segmented__item is-active" type="button" role="tab" aria-selected="true" data-status="scheduled">Scheduled</button>
+        </div>
       </div>
 
       <button class="new-draft" type="button">

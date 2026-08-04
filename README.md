@@ -79,6 +79,21 @@ Two things make this read as one stroke rather than two:
 `box-shadow` does not affect layout, so the row reserves the 3px itself
 (`.slot` padding, `.datestrip` padding).
 
+### Status tabs
+
+The highlight is one rectangle that travels between tabs rather than fading in
+place. `--i` on `.segmented__track` is the active index, and the thumb's slot
+pitch is its own width plus the 6px gap, so a percentage `translateX` does the
+arithmetic without measuring anything:
+
+```css
+transform: translateX(calc((100% + 6px) * var(--i, 2)));
+transition: transform .34s cubic-bezier(.34, 1.12, .42, 1);
+```
+
+The easing overshoots by about a pixel at the end — enough to read as a
+settle, not a bounce. Disabled under `prefers-reduced-motion`.
+
 ### Time chip
 
 The chip and the card overlap by 4px, per Figma. The chip is inset 16px to
@@ -129,7 +144,12 @@ using the reference's 16-stop curve.
 ## Fonts
 
 **Open Runde** (SIL OFL 1.1) in four weights, self-hosted from
-`assets/fonts/`. License text ships alongside it.
+`assets/fonts/`. License text ships alongside it. It is the only webfont —
+nothing falls back to Inter or a system face. The stack ends in system fonts
+purely as a last resort if the files 404.
+
+Its 2512 glyphs cover everything this UI uses, including `₹`, the em dash and
+curly quotes, so no character silently swaps to a fallback face mid-sentence.
 
 Note for the Next.js port: Apple's SF Pro / SF Pro Rounded cannot be used here.
 Apple's license covers designing and building interfaces for its own platforms

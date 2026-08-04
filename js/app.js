@@ -369,8 +369,11 @@
   els.prev.addEventListener("click", function () { shiftWeek(-1); });
   els.next.addEventListener("click", function () { shiftWeek(1); });
 
-  document.querySelectorAll(".segmented__item").forEach(function (tab) {
+  var segTrack = document.getElementById("segTrack");
+
+  document.querySelectorAll(".segmented__item").forEach(function (tab, index) {
     tab.addEventListener("click", function () {
+      segTrack.style.setProperty("--i", index);
       document.querySelectorAll(".segmented__item").forEach(function (other) {
         other.classList.remove("is-active");
         other.setAttribute("aria-selected", "false");

@@ -89,7 +89,7 @@
   --phone-w:   320px;
   --phone-scale: .58;
 
-  --font: "Open Runde", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font: "Open Runde", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 :root[data-list-bg="tinted"]{ --bg-list:#F3F2F2; --chip:#E8E7E8; }
@@ -255,18 +255,19 @@ svg{ display:block; }
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   width:38px;
   height:51px;
-  padding:9px 0 11px;
+  padding:8px;
+  gap:4px;
   border-radius:var(--r-xs);
   color:var(--text-body);
   transition:background .15s ease;
 }
 .dpill:hover{ background:var(--bg-hover); }
 .dpill > span{ position:relative; z-index:1; }
-.dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
-.dpill__day{ font-size:13px; color:var(--text-muted); }
+.dpill__num{ font-size:16px; font-weight:500; line-height:1; letter-spacing:-.01em; }
+.dpill__day{ font-size:13px; font-weight:500; line-height:1; color:var(--text-muted); }
 
 /* The lip is a zero-blur box-shadow: a copy of the very same silhouette
    offset 3px down. Its corner curve is a pure translation of the card's, so
@@ -360,25 +361,47 @@ svg{ display:block; }
 
 /* segmented control */
 .segmented{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:6px;
   padding:14px 22px;
   border-bottom:1px solid var(--line);
 }
+.segmented__track{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+
+/* The highlight is one rectangle that travels between tabs rather than
+   fading in place. --i is the active index; the slot pitch is the thumb's
+   own width plus the 6px gap, so translateX in % does the arithmetic. */
+.segmented__thumb{
+  position:absolute;
+  top:0; left:0;
+  height:100%;
+  width:calc((100% - 12px) / 3);
+  border-radius:var(--r-sm);
+  background:var(--brand-soft);
+  transform:translateX(calc((100% + 6px) * var(--i, 2)));
+  transition:transform .34s cubic-bezier(.34, 1.12, .42, 1);
+}
 .segmented__item{
+  position:relative;
+  z-index:1;
   height:40px;
   border-radius:var(--r-sm);
   font-size:16px;
   font-weight:500;
   color:var(--text-muted);
-  transition:background .15s ease, color .15s ease;
+  transition:color .2s ease;
 }
-.segmented__item:hover{ background:var(--bg-hover); color:var(--text-body); }
+.segmented__item:hover{ color:var(--text-strong); }
 .segmented__item.is-active{
-  background:var(--brand-soft);
   color:var(--brand);
   font-weight:600;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .segmented__thumb{ transition:none; }
 }
 
 /* create new draft */
