@@ -54,6 +54,25 @@ soft shadow:
 
 `--sh-md` is all six and is what raised surfaces use. `--sh-sm` is the first
 three, for small in-list elements where the 24px layer would muddy the stack.
+The selected date pill and campaign card carry no shadow at all.
+
+### Selected state
+
+The date pill and the campaign card share one construction — a single element
+with the green lip as the bottom 3px of the background, inside one continuous
+1px stroke:
+
+```css
+.dpill.is-active{
+  background: linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
+              border-box no-repeat;
+  border: 1px solid var(--stroke);
+}
+```
+
+`border-box no-repeat` is load-bearing. The default `padding-box` origin makes
+the gradient tile 2px shorter than the painted area, so the green band repeats
+and a second copy appears along the top edge.
 
 ## Fonts
 

@@ -198,7 +198,7 @@ svg{ display:block; }
   color:var(--text-muted);
 }
 
-.datestrip{ display:flex; align-items:center; gap:2px; padding-bottom:4px; }
+.datestrip{ display:flex; align-items:center; gap:2px; }
 .datestrip__arrow{
   width:28px; height:28px; flex:0 0 28px;
   display:grid; place-items:center;
@@ -215,9 +215,14 @@ svg{ display:block; }
   margin:0; padding:0;
   list-style:none;
 }
-/* Two stacked frames, per Figma: a green frame sitting 3px lower, and a
-   white face over it whose stroke skips the bottom edge — so the green
-   reads as a lip under the card. No shadow on either. */
+/* Selected state is a single element: one 1px stroke around the whole shape,
+   with the green lip as the bottom 3px of the background so the same radius
+   clips both. Stacking two stroked frames made the lip read as ragged where
+   the strokes crossed at the corners.
+
+   border-box + no-repeat are load-bearing — the default padding-box tile is
+   2px shorter than the painted area, so the band repeats and wraps to the
+   top edge. */
 .dpill{
   position:relative;
   display:flex;
@@ -227,6 +232,7 @@ svg{ display:block; }
   width:38px;
   height:51px;
   padding:9px 0 11px;
+  border:1px solid transparent;
   border-radius:var(--r-xs);
   color:var(--text-body);
   transition:background .15s ease;
@@ -236,23 +242,11 @@ svg{ display:block; }
 .dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
 .dpill__day{ font-size:13px; color:var(--text-muted); }
 
-.dpill.is-active{ background:transparent; color:#292929; }
-.dpill.is-active::before{            /* green frame, 3px inside stroke */
-  content:"";
-  position:absolute;
-  inset:0;
-  transform:translateY(3px);
-  border:3px solid var(--brand);
-  border-radius:var(--r-xs);
-}
-.dpill.is-active::after{             /* white face, stroke on 3 sides */
-  content:"";
-  position:absolute;
-  inset:0;
-  background:var(--bg-surface);
-  border:1px solid var(--stroke);
-  border-bottom-color:transparent;
-  border-radius:var(--r-xs);
+.dpill.is-active{
+  background:linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
+             border-box no-repeat;
+  border-color:var(--stroke);
+  color:#292929;
 }
 .dpill.is-active .dpill__day{ color:var(--brand); }
 
@@ -262,7 +256,7 @@ svg{ display:block; }
 /* a day that has campaigns in the current tab */
 .dpill__dot{
   position:absolute;
-  bottom:2px;
+  bottom:3px;
   width:4px; height:4px;
   border-radius:50%;
   background:var(--brand);
@@ -359,7 +353,6 @@ svg{ display:block; }
 .daygroup__icon{ width:18px; height:18px; color:var(--text-muted); }
 .daygroup__icon svg{ width:100%; height:100%; }
 
-.slot{ padding-bottom:3px; }
 .slot + .slot{ margin-top:16px; }
 .slot__time{
   display:inline-block;
@@ -372,7 +365,7 @@ svg{ display:block; }
   color:var(--text-muted);
 }
 
-/* Same two-frame construction as the date pill. */
+/* Same single-element construction as the date pill. */
 .campaign{
   position:relative;
   padding:16px 18px 14px;
@@ -381,28 +374,13 @@ svg{ display:block; }
   border-radius:var(--r-md);
   cursor:pointer;
   outline:0;
-  transition:border-color .15s ease;
+  transition:background .15s ease, border-color .15s ease;
 }
 .campaign:hover{ border-color:rgba(41,41,41,.18); }
-.campaign > *{ position:relative; z-index:1; }
 
-.campaign.is-selected{ background:transparent; border-color:transparent; }
-.campaign.is-selected::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  transform:translateY(3px);
-  border:3px solid var(--brand);
-  border-radius:var(--r-md);
-}
-.campaign.is-selected::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:var(--bg-surface);
-  border:1px solid var(--stroke);
-  border-bottom-color:transparent;
-  border-radius:var(--r-md);
+.campaign.is-selected{
+  background:linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
+             border-box no-repeat;
 }
 
 .campaign__title{
