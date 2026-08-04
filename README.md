@@ -94,6 +94,21 @@ transition: transform .34s cubic-bezier(.34, 1.12, .42, 1);
 The easing overshoots by about a pixel at the end — enough to read as a
 settle, not a bounce. Disabled under `prefers-reduced-motion`.
 
+### Month popover
+
+The week strip only reaches seven days, so the month label opens a full-month
+grid (`.monthpop`). Days carrying campaigns in the current tab get a dot,
+picking one moves the strip to that week and scrolls the list to it. Closes on
+outside click or Escape.
+
+### Empty draft state
+
+`Create New Draft` pushes an empty campaign and selects it, so the composer
+falls to its placeholders. Both the title and the message body use
+`--text-placeholder` (`#88888A`) when empty and `--text-strong` (`#292929`)
+once typed into — the title through `::placeholder`, the body through
+`:empty::before`, so neither needs JS to swap colour.
+
 ### Time chip
 
 The chip and the card overlap by 4px, per Figma. The chip is inset 16px to

@@ -31,7 +31,8 @@
   --text-strong:   #292929;
   --text-body:     #6A6970;
   --text-muted:    #6A6970;
-  --text-faint:    #9C9BA3;   /* placeholders only — a lighter --text-body */
+  --text-placeholder: #88888A;   /* empty composer / draft state */
+  --text-faint:    #9C9BA3;
 
   --line:          #EEEFF1;
   --stroke:        rgba(41,41,41,.10);   /* 292929 @ 10% */
@@ -217,13 +218,109 @@ svg{ display:block; }
   overflow:hidden;
 }
 
-.panel__head{ padding:20px 22px 16px; border-bottom:1px solid var(--line); }
+.panel__head{ position:relative; padding:20px 22px 16px; border-bottom:1px solid var(--line); }
 .panel__month{
+  display:flex;
+  align-items:center;
+  gap:4px;
   margin:0 0 14px;
+  padding:2px 6px 2px 0;
+  border-radius:var(--r-xs);
   font-size:15px;
   font-weight:500;
   color:var(--text-muted);
+  transition:color .15s ease;
 }
+.panel__month:hover{ color:var(--text-strong); }
+.panel__month-caret{
+  width:16px; height:16px;
+  transition:transform .2s ease;
+}
+.panel__month[aria-expanded="true"] .panel__month-caret{ transform:rotate(180deg); }
+
+/* ------------------------------------------------------- month popover */
+.monthpop{
+  position:absolute;
+  top:46px;
+  left:18px;
+  z-index:20;
+  width:268px;
+  padding:12px;
+  background:var(--bg-surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--sh-md);
+  transform-origin:top left;
+  animation:monthpop-in .16s ease-out;
+}
+.monthpop[hidden]{ display:none; }
+
+@keyframes monthpop-in{
+  from{ opacity:0; transform:translateY(-4px) scale(.98); }
+  to  { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .monthpop{ animation:none; }
+}
+
+.monthpop__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.monthpop__title{ font-size:14px; font-weight:600; color:var(--text-strong); }
+.monthpop__nav{
+  width:26px; height:26px;
+  display:grid; place-items:center;
+  border-radius:var(--r-xs);
+  color:var(--text-muted);
+}
+.monthpop__nav:hover{ background:var(--bg-hover); color:var(--text-strong); }
+.monthpop__nav svg{ width:15px; height:15px; }
+
+.monthpop__dows,
+.monthpop__grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:2px;
+}
+.monthpop__dows{ margin-bottom:2px; }
+.monthpop__dows span{
+  text-align:center;
+  font-size:11px;
+  font-weight:500;
+  color:var(--text-muted);
+}
+
+.mday{
+  position:relative;
+  height:32px;
+  border-radius:var(--r-xs);
+  font-size:13px;
+  font-weight:500;
+  color:var(--text-strong);
+  transition:background .12s ease;
+}
+.mday:hover{ background:var(--bg-hover); }
+.mday--out{ color:var(--text-faint); }
+.mday--today:not(.mday--on){ color:var(--brand); font-weight:600; }
+.mday--on{
+  background:var(--brand);
+  color:#fff;
+  font-weight:600;
+}
+.mday--on:hover{ background:var(--brand); }
+.mday__dot{
+  position:absolute;
+  left:50%;
+  bottom:4px;
+  width:4px; height:4px;
+  margin-left:-2px;
+  border-radius:50%;
+  background:var(--brand);
+}
+.mday--on .mday__dot{ background:#fff; }
 
 .datestrip{ display:flex; align-items:center; gap:2px; padding-bottom:4px; }
 .datestrip__arrow{
@@ -432,6 +529,7 @@ svg{ display:block; }
   background:var(--bg-subtle);
   border:1px solid transparent;
   border-radius:var(--r-md);
+  box-shadow:inset 0 0.41px 1.65px rgba(0,0,0,.08);
   transition:border-color .15s ease, background .15s ease;
 }
 .search:focus-within{ background:var(--bg-surface); border-color:var(--line-strong); }
@@ -576,21 +674,21 @@ svg{ display:block; }
   font-size:30px;
   font-weight:600;
   letter-spacing:-.02em;
-  color:var(--text-muted);
+  color:var(--text-strong);
   margin-bottom:20px;
 }
-.composer__title::placeholder{ color:var(--text-faint); }
+.composer__title::placeholder{ color:var(--text-placeholder); }
 
 .composer__editor{
   min-height:200px;
   outline:0;
   font-size:19px;
   line-height:1.6;
-  color:var(--text-body);
+  color:var(--text-strong);
 }
 .composer__editor:empty::before{
   content:attr(data-placeholder);
-  color:var(--text-faint);
+  color:var(--text-placeholder);
 }
 
 /* ------------------------------------------------------------ phone preview */

@@ -96,7 +96,30 @@
     <section class="panel" aria-label="Campaigns">
 
       <header class="panel__head">
-        <p class="panel__month" id="month">October 2026</p>
+        <button class="panel__month" id="monthBtn" type="button"
+                aria-haspopup="dialog" aria-expanded="false">
+          <span id="month">October 2026</span>
+          <svg class="panel__month-caret" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="monthpop" id="monthPop" role="dialog" aria-label="Pick a date" hidden>
+          <div class="monthpop__head">
+            <button class="monthpop__nav" id="popPrev" type="button" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="monthpop__title" id="popTitle">October 2026</span>
+            <button class="monthpop__nav" id="popNext" type="button" aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="monthpop__dows" aria-hidden="true">
+            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+          </div>
+          <div class="monthpop__grid" id="popGrid"></div>
+        </div>
 
         <div class="datestrip">
           <button class="datestrip__arrow" id="prevWeek" type="button" aria-label="Previous week">
@@ -143,7 +166,7 @@
     <section class="composer" aria-label="Message composer">
 
       <div class="composer__body">
-        <input class="composer__title" type="text" value="Campaign Title" aria-label="Campaign title" />
+        <input class="composer__title" type="text" placeholder="Campaign Title" aria-label="Campaign title" />
         <div class="composer__editor" contenteditable="true" role="textbox" aria-multiline="true"
              data-placeholder="Start writing you message"></div>
       </div>

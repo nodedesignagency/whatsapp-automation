@@ -127,7 +127,8 @@
     selectedDate: key(TODAY),
     status: "scheduled",
     query: "",
-    selectedId: "c2"
+    selectedId: "c2",
+    popMonth: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   };
 
   /* ------------------------------------------------------------ lookup */
@@ -136,6 +137,13 @@
 
   var els = {
     month: $("#month"),
+    monthBtn: $("#monthBtn"),
+    monthPop: $("#monthPop"),
+    popTitle: $("#popTitle"),
+    popGrid: $("#popGrid"),
+    popPrev: $("#popPrev"),
+    popNext: $("#popNext"),
+    newDraft: $(".new-draft"),
     strip: $("#datestrip"),
     prev: $("#prevWeek"),
     next: $("#nextWeek"),
@@ -201,6 +209,92 @@
       els.strip.appendChild(li);
     }
   }
+
+  /* ------------------------------------------------- month popover */
+
+  /* The week strip only reaches seven days at a time; this is how you get
+     to a date that is weeks out without paging. */
+  function renderMonthPop() {
+    var first = state.popMonth;
+    els.popTitle.textContent = MONTH[first.getMonth()] + " " + first.getFullYear();
+
+    /* Monday-first grid, padded with the tail of the previous month. */
+    var start = weekStart(first);
+    var html = "";
+
+    for (var i = 0; i < 42; i++) {
+      var day = addDays(start, i);
+      var iso = key(day);
+      var outside = day.getMonth() !== first.getMonth();
+      var count = countOn(iso);
+
+      var cls = "mday";
+      if (outside) cls += " mday--out";
+      if (iso === key(TODAY)) cls += " mday--today";
+      if (iso === state.selectedDate) cls += " mday--on";
+
+      html += '<button type="button" class="' + cls + '" data-date="' + iso + '"' +
+              ' aria-label="' + longDate(day) + '">' + day.getDate() +
+              (count ? '<span class="mday__dot"></span>' : "") +
+              "</button>";
+
+      /* stop after a complete week once the month is done */
+      if (i >= 27 && i % 7 === 6 && addDays(day, 1).getMonth() !== first.getMonth()) break;
+    }
+
+    els.popGrid.innerHTML = html;
+
+    els.popGrid.querySelectorAll(".mday").forEach(function (cell) {
+      cell.addEventListener("click", function () {
+        state.selectedDate = cell.dataset.date;
+        state.week = weekStart(parse(cell.dataset.date));
+        closeMonthPop();
+        renderStrip();
+        renderList();
+        var group = els.list.querySelector('.daygroup[data-date="' + state.selectedDate + '"]');
+        if (group) group.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
+  function openMonthPop() {
+    state.popMonth = new Date(state.week.getFullYear(), state.week.getMonth(), 1);
+    renderMonthPop();
+    els.monthPop.hidden = false;
+    els.monthBtn.setAttribute("aria-expanded", "true");
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("keydown", onEscape);
+  }
+
+  function closeMonthPop() {
+    els.monthPop.hidden = true;
+    els.monthBtn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("mousedown", onOutside);
+    document.removeEventListener("keydown", onEscape);
+  }
+
+  function onOutside(e) {
+    if (!els.monthPop.contains(e.target) && !els.monthBtn.contains(e.target)) closeMonthPop();
+  }
+
+  function onEscape(e) {
+    if (e.key === "Escape") { closeMonthPop(); els.monthBtn.focus(); }
+  }
+
+  els.monthBtn.addEventListener("click", function () {
+    if (els.monthPop.hidden) openMonthPop(); else closeMonthPop();
+  });
+
+  els.popPrev.addEventListener("click", function () {
+    state.popMonth = new Date(state.popMonth.getFullYear(), state.popMonth.getMonth() - 1, 1);
+    renderMonthPop();
+  });
+  els.popNext.addEventListener("click", function () {
+    state.popMonth = new Date(state.popMonth.getFullYear(), state.popMonth.getMonth() + 1, 1);
+    renderMonthPop();
+  });
+
+  /* ------------------------------------------------------------ views */
 
   function stackMarkup(count) {
     if (!count) return '<span class="campaign__more">No recipients yet</span>';
@@ -301,7 +395,7 @@
     if (!c) return;
 
     els.title.value = c.title;
-    els.editor.textContent = c.message;
+    els.editor.textContent = c.message;   /* :empty shows the placeholder */
 
     var idx = CAMPAIGNS.indexOf(c);
     els.phoneName.textContent = c.recipients
@@ -385,9 +479,38 @@
       renderStrip();
       renderList();
 
-      var first = visible()[0];
-      if (first) selectCampaign(first.id);
+      var stillThere = visible().some(function (c) { return c.id === state.selectedId; });
+      if (!stillThere) {
+        var first = visible()[0];
+        if (first) selectCampaign(first.id);
+      }
     });
+  });
+
+  var draftSeq = 0;
+
+  els.newDraft.addEventListener("click", function () {
+    draftSeq += 1;
+    var draft = {
+      id: "new" + draftSeq,
+      status: "draft",
+      date: state.selectedDate,
+      time: "12:00",
+      title: "",
+      message: "",
+      audience: "No audience yet",
+      recipients: 0
+    };
+    CAMPAIGNS.push(draft);
+
+    var tab = document.querySelector('.segmented__item[data-status="draft"]');
+    if (tab) tab.click();          /* switches status and slides the highlight */
+
+    state.selectedId = draft.id;
+    renderStrip();
+    renderList();
+    renderComposer();
+    els.title.focus();
   });
 
   els.search.addEventListener("input", function () {
