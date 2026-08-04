@@ -58,60 +58,62 @@ The selected date pill and campaign card carry no shadow at all.
 
 ### Selected state
 
-The date pill and the campaign card share one construction, after the gradient
-shadow technique from <https://lab01.dev/experiments/12/>. Three layers:
+The date pill and the campaign card are white with the brand-green lip below
+them. The lip is a zero-blur box-shadow — a copy of the very same silhouette
+offset 3px down:
 
-1. **Glow** — a blurred copy of the shape filled with the gradient, sitting
-   under the bottom edge. Tints the face through the translucent surface and
-   spills below as a coloured halo.
-2. **Surface** — white at `--surface-op`, with a hairline ring and an inset
-   white highlight.
-3. **Ring** — a 1px gradient border, faded out toward the top.
+```css
+.campaign.is-selected{ box-shadow: 0 3px 0 0 var(--brand); }
+```
 
-Glow and surface are real elements (`.layer--glow`, `.layer--surface`) rather
-than pseudo-elements: three paint layers need more than `::before`/`::after`,
-and a negative `z-index` child would paint behind the panel's own background.
+Because it is the same shape translated, its corner curve is a pure
+translation of the card's, so the band keeps an even thickness the whole way
+round. Earlier attempts stacked two separately-stroked shapes, and their
+corners never lined up — that is what produced the ragged seam. Nothing here
+needs a second element, and the card keeps one continuous 1px stroke.
 
-The ring is one pseudo-element. It exposes a 1px padding ring through a
-padding-box mask, then multiplies that by a vertical fade:
+`box-shadow` does not affect layout, so the row reserves the 3px itself
+(`.slot` padding, `.datestrip` padding).
+
+### List background
+
+The campaign list is white. Set `data-list-bg="tinted"` on `<html>` for the
+grey list (`#F3F2F2`) that the gradient shadow below needs; `--chip` follows
+so the time labels stay legible against either.
+
+### Gradient shadow (available, unused)
+
+`.gradient-shadow` implements the technique from
+<https://lab01.dev/experiments/12/> — a blurred gradient copy of the shape
+under its bottom edge, a translucent surface, and a 1px gradient border that
+fades toward the top. It is not used on this screen; it is kept for a focal
+element on a quiet page, which is where it earns its keep.
+
+```html
+<div class="gradient-shadow">
+  <span class="layer layer--glow"></span>
+  <span class="layer layer--surface"></span>
+  ... content ...
+</div>
+```
+
+Glow and surface are real elements because a negative `z-index` child would
+paint behind an ancestor's background. The ring is one pseudo-element that
+exposes a 1px padding ring through a padding-box mask, then multiplies it by a
+vertical fade:
 
 ```css
 mask-image: linear-gradient(to top, #000, transparent 100%),
-            linear-gradient(#000 0 0),
-            linear-gradient(#000 0 0);
+            linear-gradient(#000 0 0), linear-gradient(#000 0 0);
 mask-clip: border-box, content-box, border-box;
 mask-composite: intersect, exclude, add;
 ```
 
-Every parameter is a token (`--glow-*`, `--ring-op`, `--surface-op`).
-
-**Scale only blur and offset; keep everything else verbatim.** The reference
-values (glow 90%/60%, bottom −2px, blur 15px at .5, face white/80, ring .3)
-are tuned for a 60px-tall button. Blur and the bottom offset scale with shape
-height — ~×1.8 for the 110px card (27px), ~×0.85 for the 51px pill (13px) —
-and every other number carries over unchanged. Hand-tweaking the opacities
-instead of scaling is what made earlier attempts look harsh.
-
-### List background
-
-The campaign list is tinted (`--bg-list: #F3F2F2`, the reference demo's own frame colour) because the gradient shadow
-needs something to sit against — on white the halo all but disappears and the
-effect reduces to a coloured 1px edge. To go back to a white list:
-
-```html
-<html data-list-bg="white">
-```
-
-That switches `--bg-list` and `--chip` together; the time chip needs to stay
-legible against whichever one is in play. Nothing else changes.
-
-`tools/easing_gradient.py` regenerates `--grad` for any two colours, using the
-16-stop easing curve measured off that demo — the extra stops are what keep the
-blend from showing a midpoint band:
-
-```
-python3 tools/easing_gradient.py "#38AE6A" "#C9DE4F"
-```
+It needs a tinted ground; on white the halo all but disappears and only the
+ring survives. Scale `--glow-blur` and `--glow-y` with the shape's height (the
+reference is 15px / −2px on a 60px-tall button) and leave every other value
+alone. `tools/easing_gradient.py` regenerates `--grad` for any two colours
+using the reference's 16-stop curve.
 
 ## Fonts
 

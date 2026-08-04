@@ -19,11 +19,10 @@
   --bg-subtle:     #F5F5F5;
   --bg-hover:      #F2F3F5;
 
-  /* The campaign list is tinted so the gradient shadow has something to sit
-     against — on white the halo all but disappears. Set data-list-bg="white"
-     on <html> to go back to a white list without touching anything else. */
-  --bg-list:       #F3F2F2;   /* the reference demo's frame colour */
-  --chip:          #E8E7E8;
+  /* Set data-list-bg="tinted" on <html> for the grey list the gradient
+     shadow needs; the time chip follows so it stays legible either way. */
+  --bg-list:       #FFFFFF;
+  --chip:          #F5F5F5;
 
   --brand:         #38AE6A;
   --brand-soft:    rgba(56,174,106,.10);
@@ -41,8 +40,8 @@
   --dark:          #16161A;
 
 
-  /* ---- selected state ----
-     The lab01.dev gradient-shadow recipe: a blurred gradient copy of the
+  /* ---- gradient shadow (see .gradient-shadow) ----
+     The lab01.dev recipe: a blurred gradient copy of the
      shape under its bottom edge, and a 1px gradient border that fades out
      toward the top. Stops follow that demo's easing curve, so the blend has
      no visible midpoint band. Stops are the reference demo's own teal -> orange ramp;
@@ -93,7 +92,7 @@
   --font: "Open Runde", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-:root[data-list-bg="white"]{ --bg-list:#FFFFFF; --chip:#F5F5F5; }
+:root[data-list-bg="tinted"]{ --bg-list:#F3F2F2; --chip:#E8E7E8; }
 
 *,*::before,*::after{ box-sizing:border-box; }
 
@@ -226,7 +225,7 @@ svg{ display:block; }
   color:var(--text-muted);
 }
 
-.datestrip{ display:flex; align-items:center; gap:2px; }
+.datestrip{ display:flex; align-items:center; gap:2px; padding-bottom:4px; }
 .datestrip__arrow{
   width:28px; height:28px; flex:0 0 28px;
   display:grid; place-items:center;
@@ -265,22 +264,52 @@ svg{ display:block; }
   color:var(--text-body);
   transition:background .15s ease;
 }
-.dpill{
-  --glow-blur: 13px;  /* reference values scaled to the 51px pill */
-  --glow-y: -2px;
-}
 .dpill:hover{ background:var(--bg-hover); }
-.dpill > span:not(.layer){ position:relative; z-index:1; }
+.dpill > span{ position:relative; z-index:1; }
 .dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
 .dpill__day{ font-size:13px; color:var(--text-muted); }
 
-.dpill.is-active{ color:#292929; }
+/* The lip is a zero-blur box-shadow: a copy of the very same silhouette
+   offset 3px down. Its corner curve is a pure translation of the card's, so
+   the band keeps an even thickness the whole way round and there is no seam
+   to gap — which is what stacking two separate strokes kept producing. */
+.dpill.is-active{
+  background:var(--bg-surface);
+  border-color:var(--stroke);
+  box-shadow:0 3px 0 0 var(--brand);
+  color:#292929;
+}
 
-/* Three layers, same order as the reference: glow, surface, then content.
-   They are real elements rather than pseudo-elements because a negative
-   z-index child would paint behind the panel's own white background. */
-.layer{ position:absolute; display:none; border-radius:inherit; pointer-events:none; z-index:0; }
-.layer--glow{
+/* ---------------------------------------------------------------------
+   Gradient shadow — not used on this screen. Kept as an opt-in component
+   after https://lab01.dev/experiments/12/ for reuse elsewhere (the
+   WhatsApp connection screen is the obvious candidate: one focal card,
+   quiet surroundings, which is where this technique earns its keep).
+
+   Usage — three layers, glow and surface as real elements because a
+   negative z-index child would paint behind an ancestor's background:
+
+     <div class="gradient-shadow">
+       <span class="layer layer--glow"></span>
+       <span class="layer layer--surface"></span>
+       ... content ...
+     </div>
+
+   Needs a tinted ground to read; on white the halo all but disappears and
+   only the ring survives. Scale --glow-blur and --glow-y with the shape's
+   height (the reference is 15px / -2px on a 60px-tall button) and leave
+   every other value alone.
+   --------------------------------------------------------------------- */
+.gradient-shadow{ position:relative; }
+.gradient-shadow > :not(.layer){ position:relative; z-index:1; }
+
+.gradient-shadow > .layer{
+  position:absolute;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:0;
+}
+.gradient-shadow > .layer--glow{
   left:50%;
   transform:translateX(-50%);
   bottom:var(--glow-y);
@@ -290,20 +319,20 @@ svg{ display:block; }
   filter:blur(var(--glow-blur));
   opacity:var(--glow-op);
 }
-.layer--surface{
+.gradient-shadow > .layer--surface{
   inset:0;
   background:rgba(255,255,255,var(--surface-op));
   box-shadow:0 0 0 1px rgba(0,0,0,.05), inset 0 1px 1px rgba(255,255,255,1);
 }
-.is-active > .layer, .is-selected > .layer{ display:block; }
 
 /* 1px gradient border: a 1px padding ring exposed by a padding-box mask,
    then faded toward the top by a second mask layer. */
-.dpill.is-active::after, .campaign.is-selected::after{
+.gradient-shadow::after{
   content:"";
   position:absolute;
   inset:-1px;
   padding:1px;
+  border-radius:inherit;
   background:var(--grad);
   opacity:var(--ring-op);
   pointer-events:none;
@@ -313,8 +342,7 @@ svg{ display:block; }
   mask-clip:border-box, content-box, border-box;
   mask-composite:intersect, exclude, add;
 }
-.dpill.is-active::after{ border-radius:calc(var(--r-xs) + 1px); }
-.campaign.is-selected::after{ border-radius:calc(var(--r-md) + 1px); }
+
 .dpill.is-active .dpill__day{ color:var(--brand); }
 
 /* today, when it is not the selected day, keeps a quiet marker */
@@ -421,6 +449,7 @@ svg{ display:block; }
 .daygroup__icon{ width:18px; height:18px; color:var(--text-muted); }
 .daygroup__icon svg{ width:100%; height:100%; }
 
+.slot{ padding-bottom:3px; }
 .slot + .slot{ margin-top:16px; }
 .slot__time{
   display:inline-block;
@@ -445,9 +474,9 @@ svg{ display:block; }
   transition:background .15s ease, border-color .15s ease;
 }
 .campaign:hover{ border-color:rgba(41,41,41,.18); }
-.campaign > :not(.layer){ position:relative; z-index:1; }
+.campaign > *{ position:relative; z-index:1; }
 
-.campaign.is-selected{ background:none; border-color:transparent; }
+.campaign.is-selected{ box-shadow:0 3px 0 0 var(--brand); }
 
 .campaign__title{
   margin:0 0 6px;
