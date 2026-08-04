@@ -58,22 +58,33 @@ The selected date pill and campaign card carry no shadow at all.
 
 ### Selected state
 
-The date pill and the campaign card are white with the brand-green lip below
-them. The lip is a zero-blur box-shadow — a copy of the very same silhouette
-offset 3px down:
+The outline is a box-shadow ring rather than a border, so the green lip can
+paint over it:
 
 ```css
-.campaign.is-selected{ box-shadow: 0 3px 0 0 var(--brand); }
+.campaign            { box-shadow: 0 0 0 1px var(--stroke); }
+.campaign.is-selected{ box-shadow: 0 3px 0 0 var(--brand), 0 0 0 1px var(--stroke); }
 ```
 
-Because it is the same shape translated, its corner curve is a pure
-translation of the card's, so the band keeps an even thickness the whole way
-round. Earlier attempts stacked two separately-stroked shapes, and their
-corners never lined up — that is what produced the ragged seam. Nothing here
-needs a second element, and the card keeps one continuous 1px stroke.
+Two things make this read as one stroke rather than two:
+
+- The lip is a copy of the *very same silhouette* offset 3px down, so its
+  corner curve is a pure translation of the card's and the band keeps an even
+  thickness the whole way round. Earlier attempts stacked two separately
+  stroked shapes whose corners could not line up — that was the ragged seam.
+- Box-shadows paint first-listed on top, so the lip covers the ring's bottom
+  edge where they overlap. The outline reads as one stroke that turns green at
+  the bottom, instead of a grey stroke with a second green one beneath it.
 
 `box-shadow` does not affect layout, so the row reserves the 3px itself
 (`.slot` padding, `.datestrip` padding).
+
+### Time chip
+
+The chip and the card overlap by 4px, per Figma. The chip is inset 16px to
+line up with the card's padding, has square bottom corners, and sits at
+`z-index: 0` so the card (at `z-index: 1`) covers the overlap — the chip runs
+into the card's top edge rather than sitting on it.
 
 ### List background
 

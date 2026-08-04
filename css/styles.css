@@ -28,10 +28,10 @@
   --brand-soft:    rgba(56,174,106,.10);
   --brand-line:    #38AE6A;
 
-  --text-strong:   #111827;
-  --text-body:     #3F3F46;
-  --text-muted:    #8B8B8F;
-  --text-faint:    #A1A1A6;
+  --text-strong:   #292929;
+  --text-body:     #6A6970;
+  --text-muted:    #6A6970;
+  --text-faint:    #9C9BA3;   /* placeholders only — a lighter --text-body */
 
   --line:          #EEEFF1;
   --stroke:        rgba(41,41,41,.10);   /* 292929 @ 10% */
@@ -259,7 +259,6 @@ svg{ display:block; }
   width:38px;
   height:51px;
   padding:9px 0 11px;
-  border:1px solid transparent;
   border-radius:var(--r-xs);
   color:var(--text-body);
   transition:background .15s ease;
@@ -275,9 +274,8 @@ svg{ display:block; }
    to gap — which is what stacking two separate strokes kept producing. */
 .dpill.is-active{
   background:var(--bg-surface);
-  border-color:var(--stroke);
-  box-shadow:0 3px 0 0 var(--brand);
-  color:#292929;
+  box-shadow:0 3px 0 0 var(--brand), 0 0 0 1px var(--stroke);
+  color:var(--text-strong);
 }
 
 /* ---------------------------------------------------------------------
@@ -451,32 +449,46 @@ svg{ display:block; }
 
 .slot{ padding-bottom:3px; }
 .slot + .slot{ margin-top:16px; }
+/* Figma has the chip and the card overlapping by 4px. The chip tucks behind
+   the card, and its square bottom corners run into the card's top edge. */
 .slot__time{
+  position:relative;
+  z-index:0;
   display:inline-block;
-  margin-bottom:8px;
-  padding:3px 8px;
+  margin-left:16px;      /* lines up with the card's 16px padding */
+  margin-bottom:-4px;
+  padding:3px 10px 7px;
   background:var(--chip);
-  border-radius:6px;
+  border-radius:var(--r-xs) var(--r-xs) 0 0;
   font-size:12px;
   font-weight:500;
   color:var(--text-muted);
 }
 
 /* Same single-element construction as the date pill. */
+/* The outline is a box-shadow ring rather than a border, so the green lip
+   can paint over it. Shadows paint first-listed on top: the lip is a copy of
+   the silhouette offset 3px down, and where it overlaps the ring's bottom
+   edge it covers it — so the outline reads as one stroke that turns green at
+   the bottom, instead of a grey stroke with a second green one under it. */
 .campaign{
   position:relative;
-  padding:16px 18px 14px;
+  z-index:1;                 /* sits over the time chip tucked beneath it */
+  padding:16px;
   background:var(--bg-surface);
-  border:1px solid var(--stroke);
-  border-radius:var(--r-md);
+  border-radius:var(--r-lg);
+  box-shadow:0 0 0 1px var(--stroke);
   cursor:pointer;
   outline:0;
-  transition:background .15s ease, border-color .15s ease;
+  transition:box-shadow .15s ease;
 }
-.campaign:hover{ border-color:rgba(41,41,41,.18); }
+.campaign:hover{ box-shadow:0 0 0 1px rgba(41,41,41,.18); }
 .campaign > *{ position:relative; z-index:1; }
 
-.campaign.is-selected{ box-shadow:0 3px 0 0 var(--brand); }
+.campaign.is-selected,
+.campaign.is-selected:hover{
+  box-shadow:0 3px 0 0 var(--brand), 0 0 0 1px var(--stroke);
+}
 
 .campaign__title{
   margin:0 0 6px;
