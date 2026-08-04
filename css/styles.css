@@ -29,6 +29,7 @@
   --text-faint:    #A1A1A6;
 
   --line:          #EEEFF1;
+  --stroke:        rgba(41,41,41,.10);   /* 292929 @ 10% */
   --line-strong:   #E4E6EA;
 
   --dark:          #16161A;
@@ -197,7 +198,7 @@ svg{ display:block; }
   color:var(--text-muted);
 }
 
-.datestrip{ display:flex; align-items:center; gap:2px; }
+.datestrip{ display:flex; align-items:center; gap:2px; padding-bottom:4px; }
 .datestrip__arrow{
   width:28px; height:28px; flex:0 0 28px;
   display:grid; place-items:center;
@@ -214,27 +215,44 @@ svg{ display:block; }
   margin:0; padding:0;
   list-style:none;
 }
+/* Two stacked frames, per Figma: a green frame sitting 3px lower, and a
+   white face over it whose stroke skips the bottom edge — so the green
+   reads as a lip under the card. No shadow on either. */
 .dpill{
   position:relative;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:1px;
-  width:42px;
-  padding:6px 0 7px;
-  border-radius:var(--r-md);
-  border:1px solid transparent;
+  justify-content:space-between;
+  width:38px;
+  height:51px;
+  padding:9px 0 11px;
+  border-radius:var(--r-xs);
   color:var(--text-body);
-  transition:background .15s ease, border-color .15s ease;
+  transition:background .15s ease;
 }
 .dpill:hover{ background:var(--bg-hover); }
+.dpill > span{ position:relative; z-index:1; }
 .dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
-.dpill__day{ font-size:11px; color:var(--text-muted); }
-.dpill.is-active{
+.dpill__day{ font-size:13px; color:var(--text-muted); }
+
+.dpill.is-active{ background:transparent; color:#292929; }
+.dpill.is-active::before{            /* green frame, 3px inside stroke */
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateY(3px);
+  border:3px solid var(--brand);
+  border-radius:var(--r-xs);
+}
+.dpill.is-active::after{             /* white face, stroke on 3 sides */
+  content:"";
+  position:absolute;
+  inset:0;
   background:var(--bg-surface);
-  border-color:var(--line-strong);
-  box-shadow:var(--sh-sm);
-  color:var(--brand);
+  border:1px solid var(--stroke);
+  border-bottom-color:transparent;
+  border-radius:var(--r-xs);
 }
 .dpill.is-active .dpill__day{ color:var(--brand); }
 
@@ -250,7 +268,7 @@ svg{ display:block; }
   background:var(--brand);
   opacity:.55;
 }
-.dpill.is-active .dpill__dot{ opacity:1; }
+.dpill.is-active .dpill__dot{ display:none; }
 .dpill__dot[hidden]{ display:none; }
 
 /* segmented control */
@@ -341,6 +359,7 @@ svg{ display:block; }
 .daygroup__icon{ width:18px; height:18px; color:var(--text-muted); }
 .daygroup__icon svg{ width:100%; height:100%; }
 
+.slot{ padding-bottom:3px; }
 .slot + .slot{ margin-top:16px; }
 .slot__time{
   display:inline-block;
@@ -353,28 +372,38 @@ svg{ display:block; }
   color:var(--text-muted);
 }
 
+/* Same two-frame construction as the date pill. */
 .campaign{
   position:relative;
   padding:16px 18px 14px;
   background:var(--bg-surface);
-  border:1px solid var(--line);
+  border:1px solid var(--stroke);
   border-radius:var(--r-md);
-  box-shadow:var(--sh-sm);
   cursor:pointer;
   outline:0;
-  transition:box-shadow .15s ease, border-color .15s ease;
+  transition:border-color .15s ease;
 }
-.campaign:hover{ box-shadow:var(--sh-md); }
-.campaign::after{
+.campaign:hover{ border-color:rgba(41,41,41,.18); }
+.campaign > *{ position:relative; z-index:1; }
+
+.campaign.is-selected{ background:transparent; border-color:transparent; }
+.campaign.is-selected::before{
   content:"";
   position:absolute;
-  left:0; right:0; bottom:0;
-  height:3px;
-  border-radius:0 0 var(--r-md) var(--r-md);
-  background:transparent;
-  transition:background .15s ease;
+  inset:0;
+  transform:translateY(3px);
+  border:3px solid var(--brand);
+  border-radius:var(--r-md);
 }
-.campaign.is-selected::after{ background:var(--brand-line); }
+.campaign.is-selected::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:var(--bg-surface);
+  border:1px solid var(--stroke);
+  border-bottom-color:transparent;
+  border-radius:var(--r-md);
+}
 
 .campaign__title{
   margin:0 0 6px;
