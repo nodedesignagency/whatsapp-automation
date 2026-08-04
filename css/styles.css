@@ -12,9 +12,9 @@
   --bg-subtle:     #F5F5F5;
   --bg-hover:      #F2F3F5;
 
-  --brand:         #16A34A;
-  --brand-soft:    #DCFCE7;
-  --brand-line:    #22C55E;
+  --brand:         #38AE6A;
+  --brand-soft:    rgba(56,174,106,.10);
+  --brand-line:    #38AE6A;
 
   --text-strong:   #111827;
   --text-body:     #3F3F46;
@@ -195,6 +195,7 @@ svg{ display:block; }
   list-style:none;
 }
 .dpill{
+  position:relative;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -216,6 +217,21 @@ svg{ display:block; }
   color:var(--brand);
 }
 .dpill.is-active .dpill__day{ color:var(--brand); }
+
+/* today, when it is not the selected day, keeps a quiet marker */
+.dpill.is-today:not(.is-active) .dpill__num{ color:var(--brand); }
+
+/* a day that has campaigns in the current tab */
+.dpill__dot{
+  position:absolute;
+  bottom:2px;
+  width:4px; height:4px;
+  border-radius:50%;
+  background:var(--brand);
+  opacity:.55;
+}
+.dpill.is-active .dpill__dot{ opacity:1; }
+.dpill__dot[hidden]{ display:none; }
 
 /* segmented control */
 .segmented{
@@ -356,7 +372,9 @@ svg{ display:block; }
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
-.campaign__foot{ display:flex; align-items:center; gap:12px; }
+.campaign__excerpt.is-empty{ font-style:italic; color:var(--text-faint); }
+
+.campaign__foot{ display:flex; align-items:center; gap:12px; min-height:24px; }
 .stack{ display:flex; }
 .stack__img{
   width:24px; height:24px;
@@ -366,6 +384,20 @@ svg{ display:block; }
 }
 .stack__img + .stack__img{ margin-left:-8px; }
 .campaign__more{ font-size:13px; color:var(--text-muted); }
+
+/* empty state */
+.empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  padding:56px 20px;
+  text-align:center;
+  color:var(--text-faint);
+}
+.empty__icon{ width:26px; height:26px; }
+.empty__icon svg{ width:100%; height:100%; }
+.empty p{ margin:0; font-size:14px; max-width:24ch; line-height:1.5; }
 
 /* --------------------------------------------------------------- composer */
 .composer{

@@ -99,24 +99,16 @@
     <section class="panel" aria-label="Campaigns">
 
       <header class="panel__head">
-        <p class="panel__month">October 2026</p>
+        <p class="panel__month" id="month">October 2026</p>
 
         <div class="datestrip">
-          <button class="datestrip__arrow" type="button" aria-label="Previous week">
+          <button class="datestrip__arrow" id="prevWeek" type="button" aria-label="Previous week">
             <svg viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
 
-          <ul class="datestrip__list" role="tablist">
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill is-active" type="button" role="tab" aria-selected="true"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-            <li><button class="dpill" type="button" role="tab" aria-selected="false"><span class="dpill__num">12</span><span class="dpill__day">Fri</span></button></li>
-          </ul>
+          <ul class="datestrip__list" id="datestrip" role="tablist"></ul>
 
-          <button class="datestrip__arrow" type="button" aria-label="Next week">
+          <button class="datestrip__arrow" id="nextWeek" type="button" aria-label="Next week">
             <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
@@ -144,107 +136,7 @@
         </label>
       </div>
 
-      <div class="panel__scroll">
-
-        <!-- ---- day group ---- -->
-        <section class="daygroup">
-          <h3 class="daygroup__title">
-            <span class="daygroup__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </span>
-            12 October, Friday
-          </h3>
-
-          <div class="slot">
-            <span class="slot__time">3:00 PM</span>
-            <article class="campaign is-selected" tabindex="0">
-              <h4 class="campaign__title">Campaign Title</h4>
-              <p class="campaign__excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod....</p>
-              <div class="campaign__foot">
-                <div class="stack">
-                  <img class="stack__img" src="assets/avatar-1.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-2.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-3.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-4.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-5.svg" alt="" />
-                </div>
-                <span class="campaign__more">+8 people</span>
-              </div>
-            </article>
-          </div>
-
-          <div class="slot">
-            <span class="slot__time">3:00 PM</span>
-            <article class="campaign" tabindex="0">
-              <h4 class="campaign__title">Campaign Title</h4>
-              <p class="campaign__excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod....</p>
-              <div class="campaign__foot">
-                <div class="stack">
-                  <img class="stack__img" src="assets/avatar-1.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-2.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-3.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-4.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-5.svg" alt="" />
-                </div>
-                <span class="campaign__more">+8 people</span>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <!-- ---- day group ---- -->
-        <section class="daygroup">
-          <h3 class="daygroup__title">
-            <span class="daygroup__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </span>
-            13 October, Friday
-          </h3>
-
-          <div class="slot">
-            <span class="slot__time">3:00 PM</span>
-            <article class="campaign" tabindex="0">
-              <h4 class="campaign__title">Campaign Title</h4>
-              <p class="campaign__excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod....</p>
-              <div class="campaign__foot">
-                <div class="stack">
-                  <img class="stack__img" src="assets/avatar-1.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-2.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-3.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-4.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-5.svg" alt="" />
-                </div>
-                <span class="campaign__more">+8 people</span>
-              </div>
-            </article>
-          </div>
-
-          <div class="slot">
-            <span class="slot__time">6:30 PM</span>
-            <article class="campaign" tabindex="0">
-              <h4 class="campaign__title">Campaign Title</h4>
-              <p class="campaign__excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod....</p>
-              <div class="campaign__foot">
-                <div class="stack">
-                  <img class="stack__img" src="assets/avatar-1.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-2.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-3.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-4.svg" alt="" />
-                  <img class="stack__img" src="assets/avatar-5.svg" alt="" />
-                </div>
-                <span class="campaign__more">+8 people</span>
-              </div>
-            </article>
-          </div>
-        </section>
-
-      </div>
+      <div class="panel__scroll" id="list"></div>
     </section>
 
     <!-- ........................... COMPOSER ........................... -->
@@ -288,58 +180,25 @@
           </div>
 
           <div class="phone__chat">
-            <div class="bub bub--out">Good bye!<span class="bub__meta">11:47 <i class="tick"></i></span></div>
+            <div class="daychip">14 October</div>
 
-            <div class="daychip">Fri, Jul 26</div>
+            <div class="bub bub--out">Last two days of the Navratri sale — up to 40% off. Store open till 9 PM.<span class="bub__meta">10:00 <i class="tick"></i></span></div>
 
-            <div class="bub bub--out">Good morning!<span class="bub__meta">10:10 <i class="tick"></i></span></div>
-            <div class="bub bub--out">Japan looks amazing!<span class="bub__meta">10:10 <i class="tick"></i></span></div>
-
-            <div class="bub bub--out bub--file">
-              <span class="file">
-                <span class="file__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/></svg>
-                </span>
-                <span class="file__name">IMG_0475</span>
-              </span>
-              <span class="bub__meta">2.4 MB · png &nbsp;10:10 <i class="tick"></i></span>
-            </div>
+            <div class="bub bub--in">Do you have the green kurti in M?<span class="bub__meta">10:12</span></div>
+            <div class="bub bub--out">Yes we do 🙂 Shall I keep one aside for you?<span class="bub__meta">10:15 <i class="tick"></i></span></div>
+            <div class="bub bub--in">Yes please, I'll collect it tomorrow<span class="bub__meta">10:16</span></div>
 
             <div class="bub bub--out bub--file">
               <span class="file">
                 <span class="file__icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/></svg>
                 </span>
-                <span class="file__name">IMG_0481</span>
+                <span class="file__name">Diwali-Catalogue.pdf</span>
               </span>
-              <span class="bub__meta">2.8 MB · png &nbsp;10:10 <i class="tick"></i></span>
+              <span class="bub__meta">2.4 MB · pdf &nbsp;10:18 <i class="tick"></i></span>
             </div>
 
-            <div class="bub bub--in">Do you know what time is it?<span class="bub__meta">11:40</span></div>
-            <div class="bub bub--out">It’s morning in Tokyo 😎<span class="bub__meta">11:41 <i class="tick"></i></span></div>
-            <div class="bub bub--in">What is the most popular meal in Japan?<span class="bub__meta">11:45</span></div>
-            <div class="bub bub--in">Do you like it?<span class="bub__meta">11:45</span></div>
-            <div class="bub bub--out">I think top two are:<span class="bub__meta">11:50 <i class="tick"></i></span></div>
-
-            <div class="bub bub--out bub--file">
-              <span class="file">
-                <span class="file__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/></svg>
-                </span>
-                <span class="file__name">IMG_0483</span>
-              </span>
-              <span class="bub__meta">2.8 MB · png &nbsp;11:51 <i class="tick"></i></span>
-            </div>
-
-            <div class="bub bub--out bub--file">
-              <span class="file">
-                <span class="file__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#0FA958" stroke-width="1.6" stroke-linejoin="round"/></svg>
-                </span>
-                <span class="file__name">IMG_0484</span>
-              </span>
-              <span class="bub__meta">2.6 MB · png &nbsp;11:51 <i class="tick"></i></span>
-            </div>
+            <div class="daychip" id="liveDay" hidden>Today</div>
 
             <!-- live preview of what is typed in the composer -->
             <div class="bub bub--out bub--live" hidden></div>
