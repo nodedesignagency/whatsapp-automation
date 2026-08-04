@@ -34,6 +34,25 @@
 
   --dark:          #16161A;
 
+
+  /* ---- selected state ----
+     The lab01.dev gradient-shadow recipe: a blurred gradient copy of the
+     shape under its bottom edge, and a 1px gradient border that fades out
+     toward the top. Stops follow that demo's easing curve, so the blend has
+     no visible midpoint band. Swap --grad-a / --grad-b and regenerate. */
+  --grad: linear-gradient(90deg, #38AE6A 0.00%, #39AE6A 11.79%, #3DB069 21.38%, #42B168 29.12%, #4AB467 35.34%, #52B765 40.37%, #5CBA63 44.56%, #68BE61 48.24%, #73C25F 51.76%, #80C65C 55.44%, #8DCA5A 59.63%, #99CE58 64.66%, #A7D355 70.88%, #B2D653 78.62%, #BFDB51 88.21%, #C9DE4F 100.00%);
+
+  --glow-w: 94%;      /* glow size relative to the shape */
+  --glow-h: 52%;
+  --glow-y: -8px;     /* how far it sits below the shape */
+  --glow-blur: 13px;
+  --glow-op: .55;
+  --ring-op: .5;
+
+  /* The face is translucent so the glow tints it, as in the reference. On a
+     white panel the tutorial's 80% washes the text out, so it sits higher. */
+  --surface-op: .92;
+
   /* ---- radius ---- */
   --r-xs: 8px;
   --r-sm: 10px;
@@ -238,16 +257,51 @@ svg{ display:block; }
   transition:background .15s ease;
 }
 .dpill:hover{ background:var(--bg-hover); }
-.dpill > span{ position:relative; z-index:1; }
+.dpill > span:not(.layer){ position:relative; z-index:1; }
 .dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
 .dpill__day{ font-size:13px; color:var(--text-muted); }
 
-.dpill.is-active{
-  background:linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
-             border-box no-repeat;
-  border-color:var(--stroke);
-  color:#292929;
+.dpill.is-active{ color:#292929; }
+
+/* Three layers, same order as the reference: glow, surface, then content.
+   They are real elements rather than pseudo-elements because a negative
+   z-index child would paint behind the panel's own white background. */
+.layer{ position:absolute; display:none; border-radius:inherit; pointer-events:none; z-index:0; }
+.layer--glow{
+  left:50%;
+  transform:translateX(-50%);
+  bottom:var(--glow-y);
+  width:var(--glow-w);
+  height:var(--glow-h);
+  background:var(--grad);
+  filter:blur(var(--glow-blur));
+  opacity:var(--glow-op);
 }
+.layer--surface{
+  inset:0;
+  background:rgba(255,255,255,var(--surface-op));
+  box-shadow:0 0 0 1px rgba(0,0,0,.05), inset 0 1px 1px rgba(255,255,255,1);
+}
+.is-active > .layer, .is-selected > .layer{ display:block; }
+
+/* 1px gradient border: a 1px padding ring exposed by a padding-box mask,
+   then faded toward the top by a second mask layer. */
+.dpill.is-active::after, .campaign.is-selected::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  padding:1px;
+  background:var(--grad);
+  opacity:var(--ring-op);
+  pointer-events:none;
+  mask-image:linear-gradient(to top, #000, transparent 100%),
+             linear-gradient(#000 0 0),
+             linear-gradient(#000 0 0);
+  mask-clip:border-box, content-box, border-box;
+  mask-composite:intersect, exclude, add;
+}
+.dpill.is-active::after{ border-radius:calc(var(--r-xs) + 1px); }
+.campaign.is-selected::after{ border-radius:calc(var(--r-md) + 1px); }
 .dpill.is-active .dpill__day{ color:var(--brand); }
 
 /* today, when it is not the selected day, keeps a quiet marker */
@@ -377,11 +431,9 @@ svg{ display:block; }
   transition:background .15s ease, border-color .15s ease;
 }
 .campaign:hover{ border-color:rgba(41,41,41,.18); }
+.campaign > :not(.layer){ position:relative; z-index:1; }
 
-.campaign.is-selected{
-  background:linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
-             border-box no-repeat;
-}
+.campaign.is-selected{ background:none; border-color:transparent; }
 
 .campaign__title{
   margin:0 0 6px;

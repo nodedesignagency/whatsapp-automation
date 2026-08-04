@@ -163,6 +163,11 @@
     return visible().filter(function (c) { return c.date === iso; }).length;
   }
 
+  /* The glow and surface are real elements, not pseudo-elements: a negative
+     z-index child would paint behind the panel's own background. */
+  var LAYERS = '<span class="layer layer--glow"></span>' +
+               '<span class="layer layer--surface"></span>';
+
   /* ------------------------------------------------------------- views */
 
   function renderStrip() {
@@ -192,6 +197,7 @@
       btn.setAttribute("aria-label", longDate(day));
 
       btn.innerHTML =
+        LAYERS +
         '<span class="dpill__num">' + day.getDate() + "</span>" +
         '<span class="dpill__day">' + DAY_SHORT[day.getDay()] + "</span>" +
         '<span class="dpill__dot"' + (countOn(iso) ? "" : " hidden") + "></span>";
@@ -225,6 +231,7 @@
              '<span class="slot__time">' + clockTime(c.time) + "</span>" +
              '<article class="campaign' + (c.id === state.selectedId ? " is-selected" : "") +
                       '" tabindex="0" data-id="' + c.id + '">' +
+               LAYERS +
                '<h4 class="campaign__title">' + c.title + "</h4>" +
                '<p class="campaign__excerpt' + (c.message ? "" : " is-empty") + '">' + excerpt + "</p>" +
                '<div class="campaign__foot">' + stackMarkup(c.recipients) + "</div>" +

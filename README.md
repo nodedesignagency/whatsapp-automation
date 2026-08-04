@@ -58,21 +58,42 @@ The selected date pill and campaign card carry no shadow at all.
 
 ### Selected state
 
-The date pill and the campaign card share one construction — a single element
-with the green lip as the bottom 3px of the background, inside one continuous
-1px stroke:
+The date pill and the campaign card share one construction, after the gradient
+shadow technique from <https://lab01.dev/experiments/12/>. Three layers:
+
+1. **Glow** — a blurred copy of the shape filled with the gradient, sitting
+   under the bottom edge. Tints the face through the translucent surface and
+   spills below as a coloured halo.
+2. **Surface** — white at `--surface-op`, with a hairline ring and an inset
+   white highlight.
+3. **Ring** — a 1px gradient border, faded out toward the top.
+
+Glow and surface are real elements (`.layer--glow`, `.layer--surface`) rather
+than pseudo-elements: three paint layers need more than `::before`/`::after`,
+and a negative `z-index` child would paint behind the panel's own background.
+
+The ring is one pseudo-element. It exposes a 1px padding ring through a
+padding-box mask, then multiplies that by a vertical fade:
 
 ```css
-.dpill.is-active{
-  background: linear-gradient(to top, var(--brand) 3px, var(--bg-surface) 3px)
-              border-box no-repeat;
-  border: 1px solid var(--stroke);
-}
+mask-image: linear-gradient(to top, #000, transparent 100%),
+            linear-gradient(#000 0 0),
+            linear-gradient(#000 0 0);
+mask-clip: border-box, content-box, border-box;
+mask-composite: intersect, exclude, add;
 ```
 
-`border-box no-repeat` is load-bearing. The default `padding-box` origin makes
-the gradient tile 2px shorter than the painted area, so the green band repeats
-and a second copy appears along the top edge.
+Every parameter is a token (`--glow-*`, `--ring-op`, `--surface-op`). The
+reference values assume a grey frame; on our white panel the glow is weaker and
+the face washes out, so the glow sits lower and the surface is more opaque.
+
+`tools/easing_gradient.py` regenerates `--grad` for any two colours, using the
+16-stop easing curve measured off that demo — the extra stops are what keep the
+blend from showing a midpoint band:
+
+```
+python3 tools/easing_gradient.py "#38AE6A" "#C9DE4F"
+```
 
 ## Fonts
 
