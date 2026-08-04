@@ -85,16 +85,16 @@ mask-composite: intersect, exclude, add;
 
 Every parameter is a token (`--glow-*`, `--ring-op`, `--surface-op`).
 
-**Blur has to scale with the shape.** The reference blurs 15px on a 60px-tall
-button — a quarter of its height. Carrying one blur value across components
-makes the larger one look hard-edged, so the campaign card uses 26px and
-`.dpill` overrides it to 12px for its 51px height. The pill also sits on the
-white panel header rather than the tinted list, so it carries a little more
-opacity to compensate.
+**Scale only blur and offset; keep everything else verbatim.** The reference
+values (glow 90%/60%, bottom −2px, blur 15px at .5, face white/80, ring .3)
+are tuned for a 60px-tall button. Blur and the bottom offset scale with shape
+height — ~×1.8 for the 110px card (27px), ~×0.85 for the 51px pill (13px) —
+and every other number carries over unchanged. Hand-tweaking the opacities
+instead of scaling is what made earlier attempts look harsh.
 
 ### List background
 
-The campaign list is tinted (`--bg-list: #F7F7F8`) because the gradient shadow
+The campaign list is tinted (`--bg-list: #F3F2F2`, the reference demo's own frame colour) because the gradient shadow
 needs something to sit against — on white the halo all but disappears and the
 effect reduces to a coloured 1px edge. To go back to a white list:
 
