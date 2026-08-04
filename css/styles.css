@@ -39,8 +39,9 @@
      The lab01.dev gradient-shadow recipe: a blurred gradient copy of the
      shape under its bottom edge, and a 1px gradient border that fades out
      toward the top. Stops follow that demo's easing curve, so the blend has
-     no visible midpoint band. Swap --grad-a / --grad-b and regenerate. */
-  --grad: linear-gradient(90deg, #38AE6A 0.00%, #39AE6A 11.79%, #3DB069 21.38%, #42B168 29.12%, #4AB467 35.34%, #52B765 40.37%, #5CBA63 44.56%, #68BE61 48.24%, #73C25F 51.76%, #80C65C 55.44%, #8DCA5A 59.63%, #99CE58 64.66%, #A7D355 70.88%, #B2D653 78.62%, #BFDB51 88.21%, #C9DE4F 100.00%);
+     no visible midpoint band. Stops are the reference demo's own teal -> orange ramp;
+     tools/easing_gradient.py regenerates it for any other pair. */
+  --grad: linear-gradient(90deg, #6DD3CE 0%, #6ED2CC 11.79%, #72CFC8 21.38%, #77CBC1 29.12%, #7EC5B7 35.34%, #86BEAC 40.37%, #90B69E 44.56%, #9BAD90 48.24%, #A6A480 51.76%, #B39A70 55.44%, #BF905F 59.63%, #CB854E 64.66%, #D87B3D 70.88%, #E3722D 78.62%, #EF681E 88.21%, #F96010 100%);
 
   --glow-w: 94%;      /* glow size relative to the shape */
   --glow-h: 52%;
