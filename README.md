@@ -83,9 +83,27 @@ mask-clip: border-box, content-box, border-box;
 mask-composite: intersect, exclude, add;
 ```
 
-Every parameter is a token (`--glow-*`, `--ring-op`, `--surface-op`). The
-reference values assume a grey frame; on our white panel the glow is weaker and
-the face washes out, so the glow sits lower and the surface is more opaque.
+Every parameter is a token (`--glow-*`, `--ring-op`, `--surface-op`).
+
+**Blur has to scale with the shape.** The reference blurs 15px on a 60px-tall
+button — a quarter of its height. Carrying one blur value across components
+makes the larger one look hard-edged, so the campaign card uses 26px and
+`.dpill` overrides it to 12px for its 51px height. The pill also sits on the
+white panel header rather than the tinted list, so it carries a little more
+opacity to compensate.
+
+### List background
+
+The campaign list is tinted (`--bg-list: #F7F7F8`) because the gradient shadow
+needs something to sit against — on white the halo all but disappears and the
+effect reduces to a coloured 1px edge. To go back to a white list:
+
+```html
+<html data-list-bg="white">
+```
+
+That switches `--bg-list` and `--chip` together; the time chip needs to stay
+legible against whichever one is in play. Nothing else changes.
 
 `tools/easing_gradient.py` regenerates `--grad` for any two colours, using the
 16-stop easing curve measured off that demo — the extra stops are what keep the

@@ -19,6 +19,12 @@
   --bg-subtle:     #F5F5F5;
   --bg-hover:      #F2F3F5;
 
+  /* The campaign list is tinted so the gradient shadow has something to sit
+     against — on white the halo all but disappears. Set data-list-bg="white"
+     on <html> to go back to a white list without touching anything else. */
+  --bg-list:       #F7F7F8;
+  --chip:          #EAEBEE;
+
   --brand:         #38AE6A;
   --brand-soft:    rgba(56,174,106,.10);
   --brand-line:    #38AE6A;
@@ -44,11 +50,11 @@
   --grad: linear-gradient(90deg, #6DD3CE 0%, #6ED2CC 11.79%, #72CFC8 21.38%, #77CBC1 29.12%, #7EC5B7 35.34%, #86BEAC 40.37%, #90B69E 44.56%, #9BAD90 48.24%, #A6A480 51.76%, #B39A70 55.44%, #BF905F 59.63%, #CB854E 64.66%, #D87B3D 70.88%, #E3722D 78.62%, #EF681E 88.21%, #F96010 100%);
 
   --glow-w: 94%;      /* glow size relative to the shape */
-  --glow-h: 52%;
-  --glow-y: -8px;     /* how far it sits below the shape */
-  --glow-blur: 13px;
-  --glow-op: .55;
-  --ring-op: .5;
+  --glow-h: 44%;
+  --glow-y: -12px;    /* how far it sits below the shape */
+  --glow-blur: 26px;
+  --glow-op: .32;
+  --ring-op: .3;
 
   /* The face is translucent so the glow tints it, as in the reference. On a
      white panel the tutorial's 80% washes the text out, so it sits higher. */
@@ -86,6 +92,8 @@
 
   --font: "Open Runde", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+
+:root[data-list-bg="white"]{ --bg-list:#FFFFFF; --chip:#F5F5F5; }
 
 *,*::before,*::after{ box-sizing:border-box; }
 
@@ -257,6 +265,12 @@ svg{ display:block; }
   color:var(--text-body);
   transition:background .15s ease;
 }
+.dpill{
+  --glow-h: 46%;
+  --glow-y: -6px;
+  --glow-blur: 12px;
+  --glow-op: .5;      /* the header stays white, so this works harder */
+}
 .dpill:hover{ background:var(--bg-hover); }
 .dpill > span:not(.layer){ position:relative; z-index:1; }
 .dpill__num{ font-size:16px; font-weight:600; letter-spacing:-.01em; }
@@ -388,6 +402,7 @@ svg{ display:block; }
 .panel__scroll{
   flex:1;
   overflow-y:auto;
+  background:var(--bg-list);
   padding:18px 22px 24px;
   scrollbar-width:thin;
   scrollbar-color:#DDD transparent;
@@ -413,7 +428,7 @@ svg{ display:block; }
   display:inline-block;
   margin-bottom:8px;
   padding:3px 8px;
-  background:var(--bg-subtle);
+  background:var(--chip);
   border-radius:6px;
   font-size:12px;
   font-weight:500;
