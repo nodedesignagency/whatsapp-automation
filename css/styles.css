@@ -1034,10 +1034,15 @@ svg{ display:block; }
   overflow-x:auto;
   scrollbar-width:none;
   -webkit-overflow-scrolling:touch;
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
   -webkit-mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
           mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
 }
 .picktabs::-webkit-scrollbar{ display:none; }
+.picktabs.is-dragging{ cursor:grabbing; }
+.picktabs.is-dragging .picktab{ cursor:grabbing; }
 .picktab{
   display:flex;
   align-items:center;

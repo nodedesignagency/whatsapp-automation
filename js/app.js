@@ -1347,8 +1347,43 @@
     });
   }
 
+  /* The filter row is wider than the popover, so it drags sideways the way
+     the time wheels spin. Mouse only — touch already scrolls it natively. */
+  function makeRowDraggable(node) {
+    var down = false, startX = 0, startLeft = 0;
+
+    node.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse") return;
+      down = true;
+      node._dragged = false;
+      startX = e.clientX;
+      startLeft = node.scrollLeft;
+      node.classList.add("is-dragging");
+    });
+
+    /* Tracked on the window rather than through pointer capture: capture
+       would retarget the click and the pills would stop responding. */
+    window.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 3) node._dragged = true;
+      node.scrollLeft = startLeft - dx;
+    });
+
+    function release() {
+      if (!down) return;
+      down = false;
+      node.classList.remove("is-dragging");
+    }
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+  }
+
+  makeRowDraggable(els.pickTabs);
+
   els.pickTabs.querySelectorAll(".picktab").forEach(function (btn) {
     btn.addEventListener("click", function () {
+      if (els.pickTabs._dragged) return;   /* the pointer was scrolling, not picking */
       setPickTab(btn.dataset.tab);
       els.pickList.scrollTop = 0;
       renderPick();
