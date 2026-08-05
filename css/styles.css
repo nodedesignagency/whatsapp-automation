@@ -683,6 +683,7 @@ svg{ display:block; }
   border:0; outline:0; background:none;
   font-size:30px;
   font-weight:600;
+  text-overflow:ellipsis;
   letter-spacing:-.02em;
   color:var(--text-strong);
   margin-bottom:20px;
@@ -828,7 +829,9 @@ svg{ display:block; }
   grid-row:2;
   display:flex;
   align-items:center;
+  flex-wrap:wrap;
   gap:12px;
+  row-gap:10px;
   padding:14px 2px 16px;
 }
 
@@ -871,6 +874,7 @@ svg{ display:block; }
   transition:background .15s ease;
 }
 .pillbtn:hover{ background:#FBFBFB; }
+.pillbtn__label{ white-space:nowrap; }
 .pillbtn svg{ width:18px; height:18px; flex:0 0 18px; color:var(--text-body); }
 
 .actionbar__end{ margin-left:auto; display:flex; align-items:center; gap:12px; }
@@ -902,10 +906,93 @@ svg{ display:block; }
 }
 .btn--primary:hover{ filter:brightness(1.12); }
 
+/* ------------------------------------------------------------- modal */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(41,41,41,.32);
+  animation:fade-in .14s ease-out;
+}
+.modal-backdrop[hidden]{ display:none; }
+
+.modal{
+  width:100%;
+  max-width:364px;
+  padding:20px;
+  background:var(--bg-surface);
+  border-radius:var(--r-lg);
+  box-shadow:0 0 0 1px var(--line), var(--sh-md);
+  animation:modal-in .18s cubic-bezier(.34, 1.12, .42, 1);
+}
+.modal__title{
+  margin:0 0 6px;
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.modal__body{
+  margin:0 0 18px;
+  font-size:14px;
+  line-height:1.55;
+  color:var(--text-body);
+}
+.modal__actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+}
+
+@keyframes fade-in{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes modal-in{
+  from{ opacity:0; transform:translateY(6px) scale(.98); }
+  to  { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .modal-backdrop, .modal{ animation:none; }
+}
+
+/* --------------------------------------------------- draft list group */
+/* Drafts carry no schedule, so they get one plain group and no time chip. */
+.daygroup--drafts .daygroup__title{ color:var(--text-muted); font-weight:500; }
+
 /* ------------------------------------------------------------ responsive */
+/* Below this the composer cannot hold the full action bar on one row.
+   Collapsing the two pills to icons buys ~180px, which is more than the
+   shortfall, so the bar stays on one row instead of wrapping. */
+@media (max-width:1400px){
+  .pillbtn{ padding:0 10px; }
+  .pillbtn__label{
+    position:absolute;
+    width:1px; height:1px;
+    margin:-1px; padding:0;
+    overflow:hidden;
+    clip-path:inset(50%);
+    white-space:nowrap;
+  }
+}
+
 @media (max-width:1280px){
   :root{ --panel-w:380px; --phone-scale:.52; }
   .workspace{ gap:20px; }
+}
+
+@media (max-width:1160px){
+  :root{ --panel-w:352px; --phone-scale:.46; }
+  .tool{ width:30px; height:30px; }
+  .tool svg{ width:18px; height:18px; }
+
+  /* seven 38px pills plus two arrows need 366px; buy it back from the
+     head padding and the arrows rather than shrinking the pills */
+  .composer__title{ font-size:24px; }
+  .composer__editor{ font-size:17px; }
+  .panel__head{ padding:20px 14px 16px; }
+  .datestrip__arrow{ width:24px; height:24px; flex-basis:24px; }
+  .segmented, .new-draft, .panel__search, .panel__scroll{ padding-left:14px; padding-right:14px; }
 }
 
 @media (max-width:1080px){
@@ -914,7 +1001,9 @@ svg{ display:block; }
 }
 
 @media (max-width:860px){
-  .workspace{ flex-direction:column; overflow-y:auto; }
+  .app{ height:auto; min-height:100vh; }
+  .workspace{ flex-direction:column; overflow-y:visible; }
+  .composer{ grid-template-rows:auto auto; }
   .panel{ width:100%; flex:0 0 auto; max-height:60vh; }
   .composer{ grid-template-columns:1fr; }
   .preview{ display:none; }

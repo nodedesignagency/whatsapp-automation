@@ -109,6 +109,39 @@ falls to its placeholders. Both the title and the message body use
 once typed into — the title through `::placeholder`, the body through
 `:empty::before`, so neither needs JS to swap colour.
 
+### Drafts
+
+A draft carries no schedule (`date: null, time: null`). The Draft tab therefore
+ignores the week strip, renders one undated group instead of day headers, and
+its cards have no time chip. Undated campaigns also do not mark the date
+strip's dots.
+
+Confirm is what schedules a draft — it sets the date, flips the status and
+moves it to the Scheduled tab. It currently takes the date selected in the
+strip; a real `Set Schedule` picker should supply it instead.
+
+Cancel on a draft that has been typed into opens the save prompt
+(`#saveBackdrop`) rather than discarding silently. Save keeps it in Draft,
+Discard removes it. Escape and a backdrop click both close without acting.
+
+### Responsive
+
+Audited at 1600 / 1440 / 1366 / 1280 / 1180 / 1100 / 1024 / 960 / 860 / 768
+for elements overflowing their box or escaping the workspace's clip.
+
+The action bar was the culprit below ~1400px: it was `nowrap`, so its
+min-content width propagated up and forced the composer grid wider than the
+workspace, which then clipped it. Two fixes:
+
+- `flex-wrap: wrap` on `.actionbar`, so its min-content no longer drives the
+  grid and it reflows rather than clipping.
+- Below 1400px the two pill buttons drop their labels to icons (the text stays
+  for screen readers), which buys ~180px — more than the shortfall, so the bar
+  stays on one row.
+
+Below 1160px the panel narrows past what seven 38px pills plus two arrows
+need, so the head padding and arrows shrink rather than the pills.
+
 ### Action bar
 
 The Cancel / Confirm group matches the Figma frame at 146 x 36: Cancel, a 12px

@@ -51,13 +51,13 @@
     },
 
     {
-      id: "d1", status: "draft", date: "2026-10-16", time: "12:00",
+      id: "d1", status: "draft", date: null, time: null,
       title: "Untitled campaign",
       message: "",
       audience: "No audience yet", recipients: 0
     },
     {
-      id: "d2", status: "draft", date: "2026-10-18", time: "09:00",
+      id: "d2", status: "draft", date: null, time: null,
       title: "Loyalty Discount — needs pricing",
       message: "For customers who ordered 3+ times this year. Discount amount still to be confirmed with accounts.",
       audience: "Top Spenders", recipients: 41
@@ -144,6 +144,11 @@
     popPrev: $("#popPrev"),
     popNext: $("#popNext"),
     newDraft: $(".new-draft"),
+    cancelBtn: $("#cancelBtn"),
+    confirmBtn: $("#confirmBtn"),
+    saveBackdrop: $("#saveBackdrop"),
+    discardBtn: $("#discardBtn"),
+    saveDraftBtn: $("#saveDraftBtn"),
     strip: $("#datestrip"),
     prev: $("#prevWeek"),
     next: $("#nextWeek"),
@@ -170,6 +175,8 @@
   function countOn(iso) {
     return visible().filter(function (c) { return c.date === iso; }).length;
   }
+
+  function isDraft() { return state.status === "draft"; }
 
   /* ------------------------------------------------------------- views */
 
@@ -315,8 +322,8 @@
 
   function cardMarkup(c) {
     var excerpt = c.message || "This campaign has no message yet.";
-    return '<div class="slot" data-date="' + c.date + '">' +
-             '<span class="slot__time">' + clockTime(c.time) + "</span>" +
+    return '<div class="slot" data-date="' + (c.date || "") + '">' +
+             (c.time ? '<span class="slot__time">' + clockTime(c.time) + "</span>" : "") +
              '<article class="campaign' + (c.id === state.selectedId ? " is-selected" : "") +
                       '" tabindex="0" data-id="' + c.id + '">' +
                '<h4 class="campaign__title">' + c.title + "</h4>" +
@@ -326,6 +333,12 @@
            "</div>";
   }
 
+  var DRAFT_ICON =
+    '<svg viewBox="0 0 24 24" fill="none">' +
+      '<path d="M6 3h7l5 5v13H6V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' +
+      '<path d="M13 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' +
+    "</svg>";
+
   var CAL_ICON =
     '<svg viewBox="0 0 24 24" fill="none">' +
       '<rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>' +
@@ -333,7 +346,8 @@
     "</svg>";
 
   function renderList() {
-    var items = visible().filter(function (c) {
+    /* Drafts carry no date, so the week strip does not filter them. */
+    var items = isDraft() ? visible() : visible().filter(function (c) {
       var d = parse(c.date);
       return d >= state.week && d <= addDays(state.week, 6);
     });
@@ -344,31 +358,42 @@
           '<span class="empty__icon">' + CAL_ICON + "</span>" +
           "<p>" + (state.query
             ? "No campaigns match “" + state.query + "”"
-            : "No " + state.status + " campaigns this week") + "</p>" +
+            : isDraft() ? "No drafts yet"
+                        : "No " + state.status + " campaigns this week") + "</p>" +
         "</div>";
       return;
     }
 
-    items.sort(function (a, b) {
-      return a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date);
-    });
-
     var html = "";
-    var currentDay = null;
 
-    items.forEach(function (c) {
-      if (c.date !== currentDay) {
-        if (currentDay !== null) html += "</section>";
-        currentDay = c.date;
-        html += '<section class="daygroup" data-date="' + c.date + '">' +
-                  '<h3 class="daygroup__title">' +
-                    '<span class="daygroup__icon" aria-hidden="true">' + CAL_ICON + "</span>" +
-                    longDate(parse(c.date)) +
-                  "</h3>";
-      }
-      html += cardMarkup(c);
-    });
-    html += "</section>";
+    if (isDraft()) {
+      html = '<section class="daygroup daygroup--drafts">' +
+               '<h3 class="daygroup__title">' +
+                 '<span class="daygroup__icon" aria-hidden="true">' + DRAFT_ICON + "</span>" +
+                 items.length + (items.length === 1 ? " draft" : " drafts") +
+               "</h3>";
+      items.forEach(function (c) { html += cardMarkup(c); });
+      html += "</section>";
+    } else {
+      items.sort(function (a, b) {
+        return a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date);
+      });
+
+      var currentDay = null;
+      items.forEach(function (c) {
+        if (c.date !== currentDay) {
+          if (currentDay !== null) html += "</section>";
+          currentDay = c.date;
+          html += '<section class="daygroup" data-date="' + c.date + '">' +
+                    '<h3 class="daygroup__title">' +
+                      '<span class="daygroup__icon" aria-hidden="true">' + CAL_ICON + "</span>" +
+                      longDate(parse(c.date)) +
+                    "</h3>";
+        }
+        html += cardMarkup(c);
+      });
+      html += "</section>";
+    }
 
     els.list.innerHTML = html;
 
@@ -423,7 +448,7 @@
 
     var meta = document.createElement("span");
     meta.className = "bub__meta";
-    meta.innerHTML = (c ? clockTime(c.time) : "now") + ' <i class="tick"></i>';
+    meta.innerHTML = (c && c.time ? clockTime(c.time) : "now") + ' <i class="tick"></i>';
     els.live.appendChild(meta);
 
     els.chat.scrollTop = els.chat.scrollHeight;
@@ -436,7 +461,7 @@
     });
 
     var c = find(id);
-    if (c) {
+    if (c && c.date) {
       state.selectedDate = c.date;
       renderStrip();
     }
@@ -494,8 +519,8 @@
     var draft = {
       id: "new" + draftSeq,
       status: "draft",
-      date: state.selectedDate,
-      time: "12:00",
+      date: null,      /* a draft has no schedule until it is confirmed */
+      time: null,
       title: "",
       message: "",
       audience: "No audience yet",
@@ -519,14 +544,25 @@
     renderList();
   });
 
-  els.editor.addEventListener("input", renderLiveBubble);
+  els.editor.addEventListener("input", function () {
+    var c = find(state.selectedId);
+    if (c) {
+      c.message = els.editor.textContent;
+      var card = els.list.querySelector('.campaign[data-id="' + c.id + '"] .campaign__excerpt');
+      if (card) {
+        card.textContent = c.message || "This campaign has no message yet.";
+        card.classList.toggle("is-empty", !c.message);
+      }
+    }
+    renderLiveBubble();
+  });
 
   els.title.addEventListener("input", function () {
     var c = find(state.selectedId);
     if (!c) return;
     c.title = els.title.value;
     var card = els.list.querySelector('.campaign[data-id="' + c.id + '"] .campaign__title');
-    if (card) card.textContent = c.title;
+    if (card) card.textContent = c.title || "Untitled campaign";
   });
 
   document.querySelectorAll(".nav-item").forEach(function (item) {
@@ -535,6 +571,76 @@
       document.querySelectorAll(".nav-item").forEach(function (o) { o.classList.remove("is-active"); });
       item.classList.add("is-active");
     });
+  });
+
+  /* --------------------------------------------- confirm and cancel */
+
+  function goToTab(status) {
+    var tab = document.querySelector('.segmented__item[data-status="' + status + '"]');
+    if (tab) tab.click();
+  }
+
+  /* Confirming a draft is what schedules it — that is the only way a
+     campaign leaves the Draft tab. It takes the date currently selected in
+     the strip; a real Set Schedule picker would supply it instead. */
+  els.confirmBtn.addEventListener("click", function () {
+    var c = find(state.selectedId);
+    if (!c || c.status !== "draft") return;
+
+    c.status = "scheduled";
+    c.date = state.selectedDate;
+    c.time = c.time || "12:00";
+    if (!c.title) c.title = "Untitled campaign";
+
+    goToTab("scheduled");
+    selectCampaign(c.id);
+  });
+
+  /* Cancelling a draft that has been typed into asks before throwing it away. */
+  function hasContent(c) {
+    return !!c && (c.title.trim() !== "" || c.message.trim() !== "");
+  }
+
+  function openSavePrompt() {
+    els.saveBackdrop.hidden = false;
+    els.saveDraftBtn.focus();
+    document.addEventListener("keydown", onModalKey);
+  }
+
+  function closeSavePrompt() {
+    els.saveBackdrop.hidden = true;
+    document.removeEventListener("keydown", onModalKey);
+  }
+
+  function onModalKey(e) {
+    if (e.key === "Escape") closeSavePrompt();
+  }
+
+  els.cancelBtn.addEventListener("click", function () {
+    var c = find(state.selectedId);
+    if (c && c.status === "draft" && hasContent(c)) openSavePrompt();
+  });
+
+  els.saveBackdrop.addEventListener("mousedown", function (e) {
+    if (e.target === els.saveBackdrop) closeSavePrompt();
+  });
+
+  els.saveDraftBtn.addEventListener("click", function () {
+    closeSavePrompt();
+    goToTab("draft");
+    selectCampaign(state.selectedId);
+  });
+
+  els.discardBtn.addEventListener("click", function () {
+    var i = CAMPAIGNS.indexOf(find(state.selectedId));
+    if (i > -1) CAMPAIGNS.splice(i, 1);
+    closeSavePrompt();
+
+    renderStrip();
+    renderList();
+    var first = visible()[0];
+    if (first) selectCampaign(first.id);
+    else { els.title.value = ""; els.editor.textContent = ""; renderLiveBubble(); }
   });
 
   /* -------------------------------------------------------------- boot */
