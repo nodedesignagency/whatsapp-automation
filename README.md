@@ -33,7 +33,7 @@ only — nothing downstream hardcodes a colour.
 
 ```css
 --brand: #38AE6A;                    --line: #EEEFF1;
---brand-soft: rgba(56,174,106,.10);  --panel-w: 396px;
+--brand-soft: rgba(56,174,106,.10);  --panel-w: 388px;
 --phone-scale: .58;   /* phone is built at 320px, scaled down to fit */
 ```
 
@@ -108,6 +108,12 @@ falls to its placeholders. Both the title and the message body use
 `--text-placeholder` (`#88888A`) when empty and `--text-strong` (`#292929`)
 once typed into — the title through `::placeholder`, the body through
 `:empty::before`, so neither needs JS to swap colour.
+
+### Action bar
+
+The Cancel / Confirm group matches the Figma frame at 146 x 36: Cancel, a 12px
+gap, a 1px x 16px hairline at `#292929` / 15%, another 12px gap, then Confirm.
+Confirm carries the linear gradient `#42423C -> #2F2F2C`, top to bottom.
 
 ### Time chip
 

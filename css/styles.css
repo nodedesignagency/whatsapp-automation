@@ -39,6 +39,9 @@
   --line-strong:   #E4E6EA;
 
   --dark:          #16161A;
+  /* Confirm button, from Figma: linear, top to bottom */
+  --btn-dark:      linear-gradient(180deg, #42423C 0%, #2F2F2C 100%);
+  --rule:          rgba(41,41,41,.15);
 
 
   /* ---- gradient shadow (see .gradient-shadow) ----
@@ -85,8 +88,8 @@
   --sh-lg: var(--sh-md);
 
   /* ---- layout ---- */
-  --sidebar-w: 244px;
-  --panel-w:   396px;
+  --sidebar-w: 252px;
+  --panel-w:   388px;
   --phone-w:   320px;
   --phone-scale: .58;
 
@@ -177,11 +180,10 @@ svg{ display:block; }
   align-items:center;
   gap:12px;
   width:100%;
-  padding:12px 14px;
+  padding:12px;
   background:var(--bg-surface);
-  border:1px solid var(--line);
-  border-radius:var(--r-pill);
-  box-shadow:var(--sh-md);
+  border-radius:var(--r-lg);
+  box-shadow:0 0 0 1px var(--line), var(--sh-md);
   text-align:left;
 }
 .account__avatar{ width:40px; height:40px; flex:0 0 40px; border-radius:50%; overflow:hidden; }
@@ -189,8 +191,16 @@ svg{ display:block; }
 .account__meta{ display:flex; flex-direction:column; min-width:0; }
 .account__name{ font-size:14px; font-weight:600; color:var(--text-strong); }
 .account__mail{ font-size:12px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.account__chevron{ margin-left:auto; width:18px; height:18px; color:var(--text-faint); }
-.account__chevron svg{ width:100%; height:100%; }
+.account__chevron{
+  margin-left:auto;
+  flex:0 0 32px;
+  width:32px; height:32px;
+  display:grid; place-items:center;
+  background:var(--bg-subtle);
+  border-radius:var(--r-sm);
+  color:var(--text-strong);
+}
+.account__chevron svg{ width:16px; height:16px; }
 
 /* ------------------------------------------------------------ workspace */
 .workspace{
@@ -863,26 +873,34 @@ svg{ display:block; }
 .pillbtn:hover{ background:#FBFBFB; }
 .pillbtn svg{ width:18px; height:18px; flex:0 0 18px; color:var(--text-body); }
 
-.actionbar__end{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+.actionbar__end{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+
+/* hairline between Cancel and Confirm, 12px clear on each side */
+.actionbar__rule{
+  width:1px;
+  height:16px;
+  flex:0 0 1px;
+  background:var(--rule);
+}
 
 .btn{
-  height:42px;
-  padding:0 18px;
+  height:36px;
+  padding:0 10px;
   border-radius:var(--r-pill);
   font-size:14px;
   font-weight:500;
   white-space:nowrap;
   transition:background .15s ease, opacity .15s ease;
 }
-.btn--ghost{ padding:0 14px; color:var(--text-strong); }
-.btn--ghost:hover{ background:rgba(0,0,0,.04); }
+.btn--ghost{ padding:0; color:var(--text-strong); }
+.btn--ghost:hover{ color:#000; }
 .btn--primary{
-  background:var(--dark);
+  background:var(--btn-dark);
   color:#fff;
   font-weight:600;
   box-shadow:var(--sh-md);
 }
-.btn--primary:hover{ background:#000; }
+.btn--primary:hover{ filter:brightness(1.12); }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width:1280px){
