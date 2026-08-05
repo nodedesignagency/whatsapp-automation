@@ -109,6 +109,12 @@ falls to its placeholders. Both the title and the message body use
 once typed into — the title through `::placeholder`, the body through
 `:empty::before`, so neither needs JS to swap colour.
 
+### Composer title
+
+A `contenteditable` div, not an `<input>`. A long campaign title has to wrap
+onto a second line, and an input can only clip or ellipsise. It shares the
+message body's placeholder mechanism (`:empty::before`).
+
 ### Drafts
 
 A draft carries no schedule (`date: null, time: null`). The Draft tab therefore
@@ -123,6 +129,11 @@ strip; a real `Set Schedule` picker should supply it instead.
 Cancel on a draft that has been typed into opens the save prompt
 (`#saveBackdrop`) rather than discarding silently. Save keeps it in Draft,
 Discard removes it. Escape and a backdrop click both close without acting.
+
+The prompt is illustrated: `assets/draft-illustration.jpg` sits full-bleed
+across the top at a 2.2:1 ratio, with the panel behind it filled `#DFF0DC` so
+the modal holds its shape while the image loads. Generated with Magnific,
+cropped and re-encoded to 9KB.
 
 ### Responsive
 

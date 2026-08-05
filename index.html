@@ -166,7 +166,8 @@
     <section class="composer" aria-label="Message composer">
 
       <div class="composer__body">
-        <input class="composer__title" type="text" placeholder="Campaign Title" aria-label="Campaign title" />
+        <div class="composer__title" contenteditable="true" role="textbox"
+             aria-label="Campaign title" data-placeholder="Campaign Title"></div>
         <div class="composer__editor" contenteditable="true" role="textbox" aria-multiline="true"
              data-placeholder="Start writing you message"></div>
       </div>
@@ -292,6 +293,10 @@
 <div class="modal-backdrop" id="saveBackdrop" hidden>
   <div class="modal" role="dialog" aria-modal="true"
        aria-labelledby="saveTitle" aria-describedby="saveBody">
+    <div class="modal__art">
+      <img src="assets/draft-illustration.jpg" alt="" />
+    </div>
+    <div class="modal__content">
     <h2 class="modal__title" id="saveTitle">Save this as a draft?</h2>
     <p class="modal__body" id="saveBody">
       This campaign has not been scheduled yet. Save it and you can finish it later
@@ -301,6 +306,7 @@
       <button class="btn btn--ghost" type="button" id="discardBtn">Discard</button>
       <span class="actionbar__rule" aria-hidden="true"></span>
       <button class="btn btn--primary" type="button" id="saveDraftBtn">Save draft</button>
+    </div>
     </div>
   </div>
 </div>

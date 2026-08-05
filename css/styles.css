@@ -677,18 +677,24 @@ svg{ display:block; }
 
 .composer__body{ grid-column:1; grid-row:1; min-width:0; padding-top:6px; }
 
+/* contenteditable rather than an input: a long campaign title has to wrap
+   onto a second line, and an input can only ever clip or ellipsise. */
 .composer__title{
   display:block;
   width:100%;
-  border:0; outline:0; background:none;
+  outline:0;
   font-size:30px;
   font-weight:600;
-  text-overflow:ellipsis;
+  line-height:1.25;
   letter-spacing:-.02em;
   color:var(--text-strong);
   margin-bottom:20px;
+  overflow-wrap:anywhere;
 }
-.composer__title::placeholder{ color:var(--text-placeholder); }
+.composer__title:empty::before{
+  content:attr(data-placeholder);
+  color:var(--text-placeholder);
+}
 
 .composer__editor{
   min-height:200px;
@@ -922,12 +928,23 @@ svg{ display:block; }
 .modal{
   width:100%;
   max-width:364px;
-  padding:20px;
   background:var(--bg-surface);
   border-radius:var(--r-lg);
   box-shadow:0 0 0 1px var(--line), var(--sh-md);
+  overflow:hidden;
   animation:modal-in .18s cubic-bezier(.34, 1.12, .42, 1);
 }
+.modal__art{
+  aspect-ratio:2.2 / 1;
+  background:#DFF0DC;   /* matches the artwork, so it holds its shape while loading */
+}
+.modal__art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.modal__content{ padding:18px 20px 20px; }
 .modal__title{
   margin:0 0 6px;
   font-size:16px;

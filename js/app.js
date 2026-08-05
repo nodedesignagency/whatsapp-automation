@@ -419,7 +419,7 @@
     var c = find(state.selectedId);
     if (!c) return;
 
-    els.title.value = c.title;
+    els.title.textContent = c.title;
     els.editor.textContent = c.message;   /* :empty shows the placeholder */
 
     var idx = CAMPAIGNS.indexOf(c);
@@ -560,7 +560,7 @@
   els.title.addEventListener("input", function () {
     var c = find(state.selectedId);
     if (!c) return;
-    c.title = els.title.value;
+    c.title = els.title.textContent;
     var card = els.list.querySelector('.campaign[data-id="' + c.id + '"] .campaign__title');
     if (card) card.textContent = c.title || "Untitled campaign";
   });
@@ -640,7 +640,7 @@
     renderList();
     var first = visible()[0];
     if (first) selectCampaign(first.id);
-    else { els.title.value = ""; els.editor.textContent = ""; renderLiveBubble(); }
+    else { els.title.textContent = ""; els.editor.textContent = ""; renderLiveBubble(); }
   });
 
   /* -------------------------------------------------------------- boot */
