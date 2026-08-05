@@ -962,7 +962,7 @@ svg{ display:block; }
 .popover__summary{ font-size:12.5px; line-height:1.4; color:var(--text-muted); }
 .popover .btn{ height:32px; padding:0 14px; flex:0 0 auto; }
 
-/* ---- schedule ---- */
+/* ---- schedule: presets, times, custom time ---- */
 .presets{ display:flex; gap:6px; margin-bottom:12px; }
 .preset{
   flex:1;
@@ -1084,6 +1084,190 @@ svg{ display:block; }
 .pickrow.is-on .pickrow__check svg{ opacity:1; }
 
 .pickempty{ padding:22px 6px; text-align:center; font-size:13px; color:var(--text-faint); }
+
+/* --------------------------------------------------- schedule modal */
+.modal.modal--sched{
+  max-width:560px;
+  padding:22px 22px 0;
+}
+.schedm__head{ margin-bottom:16px; }
+.modal.modal--sched .modal__title{ font-size:18px; }
+.modal.modal--sched .modal__body{ margin:0; max-width:52ch; }
+
+.schedstep{ animation:fade-in .16s ease-out; }
+.schedstep[hidden]{ display:none; }
+
+/* big month grid, in the spirit of a planning calendar rather than a
+   date input — cells are targets, not digits */
+.calhead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:18px 0 10px;
+}
+.calhead__title{ margin:0; font-size:20px; letter-spacing:-.02em; }
+.calhead__title strong{ font-weight:600; color:var(--text-strong); }
+.calhead__title span{ font-weight:500; color:var(--text-faint); }
+.calhead__nav{ display:flex; align-items:center; gap:2px; }
+
+.calgrid__dows{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  border-bottom:1px solid var(--line);
+}
+.calgrid__dows span{
+  padding:0 0 8px 8px;
+  font-size:11.5px;
+  font-weight:500;
+  color:var(--text-muted);
+}
+
+/* minmax(0,1fr) not 1fr: a long campaign title in a cell would otherwise
+   push its column past an equal share and blow the grid out sideways. */
+.calgrid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+}
+.calcell{
+  position:relative;
+  min-width:0;
+  min-height:62px;
+  padding:7px 8px;
+  text-align:left;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text-strong);
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  transition:background .12s ease;
+}
+.calcell:nth-child(7n){ border-right:0; }
+.calcell:hover:not([disabled]){ background:var(--bg-subtle); }
+.calcell--out{ color:var(--text-faint); }
+.calcell[disabled]{ color:var(--text-faint); opacity:.45; cursor:default; }
+.calcell--today .calcell__num{ color:var(--brand); font-weight:700; }
+.calcell--today::after{
+  content:"";
+  position:absolute;
+  top:6px; left:8px;
+  width:18px; height:2px;
+  border-radius:1px;
+  background:var(--brand);
+}
+.calcell--on{ background:var(--brand-soft); }
+.calcell--on .calcell__num{ color:var(--brand); font-weight:700; }
+.calcell__marks{
+  position:absolute;
+  left:8px;
+  bottom:8px;
+  display:flex;
+  align-items:center;
+  gap:3px;
+}
+.calcell__dot{
+  width:5px; height:5px;
+  border-radius:50%;
+  background:var(--brand);
+  opacity:.65;
+}
+.calcell__more{ font-size:10px; font-weight:500; color:var(--text-muted); }
+
+/* step 2 */
+.chosen-date{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:11px 12px;
+  margin:18px 0 4px;
+  border-radius:var(--r-md);
+  background:var(--bg-subtle);
+  text-align:left;
+}
+.chosen-date:hover{ background:var(--bg-hover); }
+.chosen-date__icon{ width:18px; height:18px; color:var(--brand); }
+.chosen-date__icon svg{ width:100%; height:100%; }
+.chosen-date__text{ font-size:14px; font-weight:600; color:var(--text-strong); }
+.chosen-date__change{ margin-left:auto; font-size:13px; font-weight:500; color:var(--brand); }
+
+.repeatrow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin-top:16px;
+  padding:11px 12px;
+  border-radius:var(--r-md);
+  box-shadow:0 0 0 1px var(--line);
+  text-align:left;
+  transition:box-shadow .12s ease;
+}
+.repeatrow:hover{ box-shadow:0 0 0 1px var(--line-strong); }
+.repeatrow__icon{ width:18px; height:18px; color:var(--text-muted); }
+.repeatrow__icon svg{ width:100%; height:100%; }
+.repeatrow__meta{ display:flex; flex-direction:column; }
+.repeatrow__title{ font-size:13.5px; font-weight:500; color:var(--text-strong); }
+.repeatrow__value{ font-size:12px; color:var(--text-muted); }
+.repeatrow__chev{ margin-left:auto; width:16px; height:16px; color:var(--text-faint); }
+.repeatrow__chev svg{ width:100%; height:100%; }
+
+.pop-anchor--block{ display:block; }
+/* the Repeat row sits near the modal's bottom edge, so this opens upward
+   over the body rather than hanging off the card */
+.popover--repeat{
+  bottom:calc(100% + 8px);
+  top:auto;
+  left:0;
+  width:300px;
+}
+.popover__label--first{ margin-top:0; }
+
+.freq{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.dowpick{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.dow{
+  height:30px;
+  border-radius:50%;
+  background:var(--bg-subtle);
+  font-size:12px;
+  font-weight:500;
+  color:var(--text-strong);
+}
+.dow:hover{ background:var(--bg-hover); }
+.dow.is-on{ background:var(--brand); color:#fff; font-weight:600; }
+
+.ends{ display:flex; flex-direction:column; gap:8px; }
+.endrow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:var(--text-body);
+  cursor:pointer;
+}
+.endrow input[type="radio"]{ accent-color:var(--brand); width:15px; height:15px; }
+.endrow input[type="date"],
+.endrow input[type="number"]{
+  height:28px;
+  margin-left:auto;
+  padding:0 8px;
+  background:var(--bg-subtle);
+  border:0;
+  border-radius:var(--r-xs);
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--text-strong);
+}
+.endrow input[type="number"]{ width:56px; margin-left:auto; }
+.endrow__unit{ color:var(--text-muted); }
+
+.modal__actions--sched{
+  margin:0 -22px;
+  padding:14px 22px;
+  border-top:1px solid var(--line);
+  justify-content:space-between;
+}
+.modal__actions-end{ display:flex; align-items:center; gap:12px; }
+.modal--sched .btn{ height:36px; }
 
 /* ------------------------------------------------------------- modal */
 .modal-backdrop{

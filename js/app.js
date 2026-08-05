@@ -184,10 +184,19 @@
     phoneName: $(".phone__name"),
     phoneSub: $(".phone__sub"),
 
-    schedBtn: $("#schedBtn"), schedPop: $("#schedPop"), schedLabel: $("#schedLabel"),
-    schedPresets: $("#schedPresets"), schedMonth: $("#schedMonth"), schedGrid: $("#schedGrid"),
-    schedPrev: $("#schedPrev"), schedNext: $("#schedNext"), schedTimes: $("#schedTimes"),
-    schedTime: $("#schedTime"), schedSummary: $("#schedSummary"), schedDone: $("#schedDone"),
+    schedBtn: $("#schedBtn"), schedLabel: $("#schedLabel"),
+    schedBackdrop: $("#schedBackdrop"), schedIntro: $("#schedIntro"),
+    stepDate: $("#stepDate"), stepTime: $("#stepTime"),
+    bigPresets: $("#bigPresets"), bigMonth: $("#bigMonth"), bigYear: $("#bigYear"),
+    bigGrid: $("#bigGrid"), bigToday: $("#bigToday"), bigPrev: $("#bigPrev"), bigNext: $("#bigNext"),
+    bigTimes: $("#bigTimes"), bigTime: $("#bigTime"), bigSummary: $("#bigSummary"),
+    chosenDate: $("#chosenDate"), backToDate: $("#backToDate"),
+    schedCancel: $("#schedCancel"), schedSave: $("#schedSave"),
+    repeatBtn: $("#repeatBtn"), repeatPop: $("#repeatPop"), repeatValue: $("#repeatValue"),
+    repeatFreq: $("#repeatFreq"), repeatDaysWrap: $("#repeatDaysWrap"), repeatDays: $("#repeatDays"),
+    repeatEndsWrap: $("#repeatEndsWrap"), repeatEnds: $("#repeatEnds"),
+    endsOn: $("#endsOn"), endsAfter: $("#endsAfter"),
+    repeatSummary: $("#repeatSummary"), repeatDone: $("#repeatDone"),
 
     contactBtn: $("#contactBtn"), contactPop: $("#contactPop"), contactLabel: $("#contactLabel"),
     pickSearch: $("#pickSearch"), pickList: $("#pickList"),
@@ -739,102 +748,272 @@
 
   /* ------------------------------------------------------ set schedule */
 
-  /* Most sends are near-term, so the presets carry the common cases and the
-     grid is there for everything else. */
+  /* A modal rather than a popover: the calendar is the point, so it gets
+     room. Step 1 picks the day, step 2 the time — one decision per screen
+     instead of a wall of controls. Edits are held in `pending` and only
+     written to the campaign on Save, so Cancel really cancels. */
+
   var TIME_SLOTS = ["09:00", "11:00", "13:00", "15:00", "18:00", "20:00"];
+  var DOW_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];   // Monday-first
+  var pending = null;
+
+  function blankRepeat() {
+    return { freq: "none", days: [], ends: "never", endsOn: null, endsAfter: 4 };
+  }
 
   function shortDate(d) {
     return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()].slice(0, 3);
   }
 
-  function renderSched() {
-    var c = find(state.selectedId);
-    if (!c) return;
-    var chosen = c.date || state.selectedDate;
-    var time = c.time || "15:00";
+  function repeatText(r) {
+    if (!r || r.freq === "none") return "Send once";
+    var base;
+    if (r.freq === "daily") base = "Every day";
+    else if (r.freq === "monthly") base = "Every month";
+    else {
+      var names = r.days.slice().sort().map(function (i) {
+        return DAY_SHORT[(i + 1) % 7];
+      });
+      base = names.length ? "Every week on " + names.join(", ") : "Every week";
+    }
+    if (r.ends === "on" && r.endsOn) return base + ", until " + shortDate(parse(r.endsOn));
+    if (r.ends === "after") return base + ", " + r.endsAfter + " times";
+    return base;
+  }
 
-    /* presets */
-    Array.prototype.forEach.call(els.schedPresets.children, function (btn) {
-      var iso = key(addDays(TODAY, +btn.dataset.offset));
-      btn.classList.toggle("is-on", iso === chosen);
-    });
+  /* ---- step 1 ---- */
 
-    /* month grid — same day cells as the header popover */
+  function renderBigCal() {
     var first = state.schedMonth;
-    els.schedMonth.textContent = MONTH[first.getMonth()] + " " + first.getFullYear();
+    els.bigMonth.textContent = MONTH[first.getMonth()];
+    els.bigYear.textContent = first.getFullYear();
+
+    Array.prototype.forEach.call(els.bigPresets.children, function (btn) {
+      btn.classList.toggle("is-on", key(addDays(TODAY, +btn.dataset.offset)) === pending.date);
+    });
 
     var start = weekStart(first);
     var html = "";
     for (var i = 0; i < 42; i++) {
       var day = addDays(start, i);
       var iso = key(day);
-      var cls = "mday";
-      if (day.getMonth() !== first.getMonth()) cls += " mday--out";
-      if (iso === key(TODAY)) cls += " mday--today";
-      if (iso === chosen) cls += " mday--on";
-      /* a campaign cannot be scheduled into the past */
       var past = day < TODAY && iso !== key(TODAY);
+
+      var cls = "calcell";
+      if (day.getMonth() !== first.getMonth()) cls += " calcell--out";
+      if (iso === key(TODAY)) cls += " calcell--today";
+      if (iso === pending.date) cls += " calcell--on";
+
+      /* what is already booked that day, so you are not scheduling blind */
+      var booked = CAMPAIGNS.filter(function (c) {
+        return c.date === iso && c.status !== "draft" && c.id !== state.selectedId;
+      });
+
       html += '<button type="button" class="' + cls + '" data-date="' + iso + '"' +
-              (past ? " disabled" : "") + ' aria-label="' + longDate(day) + '">' +
-              day.getDate() + "</button>";
+              (past ? " disabled" : "") + ' aria-label="' + longDate(day) +
+              (booked.length ? " — " + booked.length + " already scheduled" : "") + '">' +
+                '<span class="calcell__num">' + day.getDate() + "</span>" +
+                (booked.length
+                  ? '<span class="calcell__marks">' +
+                      new Array(Math.min(booked.length, 3) + 1).join('<span class="calcell__dot"></span>') +
+                      (booked.length > 3 ? '<span class="calcell__more">+' + (booked.length - 3) + "</span>" : "") +
+                    "</span>"
+                  : "") +
+              "</button>";
       if (i >= 27 && i % 7 === 6 && addDays(day, 1).getMonth() !== first.getMonth()) break;
     }
-    els.schedGrid.innerHTML = html;
-    els.schedGrid.querySelectorAll(".mday").forEach(function (cell) {
-      cell.addEventListener("click", function () { setSchedule(cell.dataset.date, null); });
+    els.bigGrid.innerHTML = html;
+
+    els.bigGrid.querySelectorAll(".calcell:not([disabled])").forEach(function (cell) {
+      cell.addEventListener("click", function () {
+        pending.date = cell.dataset.date;
+        goToStep("time");
+      });
     });
 
-    /* time */
-    els.schedTimes.innerHTML = TIME_SLOTS.map(function (t) {
-      return '<button type="button" class="timechip' + (t === time ? " is-on" : "") +
+    els.bigSummary.textContent = pending.date
+      ? "Sends " + shortDate(parse(pending.date))
+      : "Pick a date to continue";
+    els.schedSave.disabled = !pending.date;
+  }
+
+  /* ---- step 2 ---- */
+
+  function renderBigTime() {
+    var d = parse(pending.date);
+    els.chosenDate.textContent =
+      DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()];
+
+    els.bigTimes.innerHTML = TIME_SLOTS.map(function (t) {
+      return '<button type="button" class="timechip' + (t === pending.time ? " is-on" : "") +
              '" data-time="' + t + '">' + clockTime(t) + "</button>";
     }).join("");
-    els.schedTimes.querySelectorAll(".timechip").forEach(function (chip) {
-      chip.addEventListener("click", function () { setSchedule(null, chip.dataset.time); });
+    els.bigTimes.querySelectorAll(".timechip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        pending.time = chip.dataset.time;
+        renderBigTime();
+      });
     });
-    els.schedTime.value = time;
+    els.bigTime.value = pending.time;
 
-    els.schedSummary.textContent = "Sends " + shortDate(parse(chosen)) + ", " + clockTime(time);
-    els.schedLabel.textContent = c.date
-      ? parse(c.date).getDate() + " " + MONTH[parse(c.date).getMonth()].slice(0, 3) + ", " + clockTime(time)
-      : "Set Schedule";
+    els.repeatValue.textContent = repeatText(pending.repeat);
+    els.bigSummary.textContent =
+      "Sends " + shortDate(parse(pending.date)) + ", " + clockTime(pending.time) +
+      (pending.repeat.freq === "none" ? "" : " · " + repeatText(pending.repeat).toLowerCase());
+    els.schedSave.disabled = false;
   }
 
-  function setSchedule(date, time) {
+  function goToStep(step) {
+    var onDate = step === "date";
+    els.stepDate.hidden = !onDate;
+    els.stepTime.hidden = onDate;
+    els.schedIntro.textContent = onDate
+      ? "Pick the day this campaign goes out. You can change it any time before it sends."
+      : "Choose a time, and whether it should repeat.";
+    if (onDate) renderBigCal(); else renderBigTime();
+  }
+
+  /* ---- recurrence ---- */
+
+  function renderRepeat() {
+    var r = pending.repeat;
+
+    els.repeatFreq.querySelectorAll(".timechip").forEach(function (chip) {
+      chip.classList.toggle("is-on", chip.dataset.freq === r.freq);
+    });
+
+    els.repeatDaysWrap.hidden = r.freq !== "weekly";
+    els.repeatEndsWrap.hidden = r.freq === "none";
+
+    els.repeatDays.innerHTML = DOW_LETTERS.map(function (letter, i) {
+      return '<button type="button" class="dow' + (r.days.indexOf(i) > -1 ? " is-on" : "") +
+             '" data-dow="' + i + '" aria-label="' + DAY_LONG[(i + 1) % 7] + '">' + letter + "</button>";
+    }).join("");
+    els.repeatDays.querySelectorAll(".dow").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var i = +btn.dataset.dow;
+        var at = r.days.indexOf(i);
+        if (at > -1) r.days.splice(at, 1); else r.days.push(i);
+        renderRepeat();
+      });
+    });
+
+    els.repeatEnds.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+      radio.checked = radio.value === r.ends;
+    });
+    els.endsOn.value = r.endsOn || key(addDays(parse(pending.date), 28));
+    els.endsAfter.value = r.endsAfter;
+
+    els.repeatSummary.textContent = repeatText(r);
+    els.repeatValue.textContent = repeatText(r);
+  }
+
+  els.repeatBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (openPop && openPop.pop === els.repeatPop) return hidePop();
+    showPop(els.repeatPop, els.repeatBtn, renderRepeat);
+  });
+
+  els.repeatFreq.addEventListener("click", function (e) {
+    var chip = e.target.closest(".timechip");
+    if (!chip) return;
+    pending.repeat.freq = chip.dataset.freq;
+    /* a weekly repeat defaults to the day already chosen */
+    if (chip.dataset.freq === "weekly" && !pending.repeat.days.length) {
+      pending.repeat.days = [(parse(pending.date).getDay() + 6) % 7];
+    }
+    renderRepeat();
+  });
+
+  els.repeatEnds.addEventListener("change", function (e) {
+    if (e.target.type === "radio") pending.repeat.ends = e.target.value;
+    if (e.target === els.endsOn) { pending.repeat.ends = "on"; pending.repeat.endsOn = els.endsOn.value; }
+    if (e.target === els.endsAfter) { pending.repeat.ends = "after"; pending.repeat.endsAfter = +els.endsAfter.value || 1; }
+    renderRepeat();
+  });
+  els.repeatEnds.addEventListener("input", function (e) {
+    if (e.target === els.endsOn) pending.repeat.endsOn = els.endsOn.value;
+    if (e.target === els.endsAfter) pending.repeat.endsAfter = +els.endsAfter.value || 1;
+    renderRepeat();
+  });
+  els.repeatDone.addEventListener("click", function () {
+    hidePop();
+    renderBigTime();
+  });
+
+  /* ---- open / close ---- */
+
+  function openSched() {
     var c = find(state.selectedId);
     if (!c) return;
-    if (date) { c.date = date; state.selectedDate = date; state.schedMonth = new Date(parse(date).getFullYear(), parse(date).getMonth(), 1); }
-    if (time) c.time = time;
-    if (!c.time) c.time = "15:00";
-    renderSched();
-    renderStrip();
-    if (!isDraft()) renderList();
+    pending = {
+      date: c.date || null,
+      time: c.time || "15:00",
+      repeat: c.repeat ? JSON.parse(JSON.stringify(c.repeat)) : blankRepeat()
+    };
+    var base = pending.date ? parse(pending.date) : TODAY;
+    state.schedMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+
+    els.schedBackdrop.hidden = false;
+    goToStep(pending.date ? "time" : "date");
+    document.addEventListener("keydown", onSchedKey);
   }
 
-  els.schedBtn.addEventListener("click", function () {
-    if (openPop && openPop.pop === els.schedPop) return hidePop();
-    var c = find(state.selectedId);
-    var base = c && c.date ? parse(c.date) : parse(state.selectedDate);
-    state.schedMonth = new Date(base.getFullYear(), base.getMonth(), 1);
-    showPop(els.schedPop, els.schedBtn, renderSched);
+  function closeSched() {
+    hidePop();
+    els.schedBackdrop.hidden = true;
+    document.removeEventListener("keydown", onSchedKey);
+  }
+
+  function onSchedKey(e) {
+    if (e.key === "Escape" && !openPop) closeSched();
+  }
+
+  els.schedBtn.addEventListener("click", openSched);
+  els.schedCancel.addEventListener("click", closeSched);
+  els.schedBackdrop.addEventListener("mousedown", function (e) {
+    if (e.target === els.schedBackdrop) closeSched();
   });
 
-  els.schedPresets.addEventListener("click", function (e) {
+  els.backToDate.addEventListener("click", function () { goToStep("date"); });
+
+  els.bigPresets.addEventListener("click", function (e) {
     var btn = e.target.closest(".preset");
-    if (btn) setSchedule(key(addDays(TODAY, +btn.dataset.offset)), null);
+    if (!btn) return;
+    pending.date = key(addDays(TODAY, +btn.dataset.offset));
+    state.schedMonth = new Date(parse(pending.date).getFullYear(), parse(pending.date).getMonth(), 1);
+    goToStep("time");
   });
-  els.schedPrev.addEventListener("click", function () {
+
+  els.bigPrev.addEventListener("click", function () {
     state.schedMonth = new Date(state.schedMonth.getFullYear(), state.schedMonth.getMonth() - 1, 1);
-    renderSched();
+    renderBigCal();
   });
-  els.schedNext.addEventListener("click", function () {
+  els.bigNext.addEventListener("click", function () {
     state.schedMonth = new Date(state.schedMonth.getFullYear(), state.schedMonth.getMonth() + 1, 1);
-    renderSched();
+    renderBigCal();
   });
-  els.schedTime.addEventListener("input", function () {
-    if (els.schedTime.value) setSchedule(null, els.schedTime.value);
+  els.bigToday.addEventListener("click", function () {
+    state.schedMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    renderBigCal();
   });
-  els.schedDone.addEventListener("click", hidePop);
+  els.bigTime.addEventListener("input", function () {
+    if (els.bigTime.value) { pending.time = els.bigTime.value; renderBigTime(); }
+  });
+
+  els.schedSave.addEventListener("click", function () {
+    var c = find(state.selectedId);
+    if (!c || !pending.date) return;
+    c.date = pending.date;
+    c.time = pending.time;
+    c.repeat = pending.repeat.freq === "none" ? null : pending.repeat;
+    state.selectedDate = c.date;
+    state.week = weekStart(parse(c.date));
+    closeSched();
+    renderStrip();
+    renderList();
+    renderComposer();
+  });
 
   /* ---------------------------------------------------- select contact */
 
@@ -935,7 +1114,7 @@
     els.contactLabel.textContent = recipientCount(c) ? audienceLabel(c) : "Select Contact";
     els.schedLabel.textContent = c.date
       ? parse(c.date).getDate() + " " + MONTH[parse(c.date).getMonth()].slice(0, 3) +
-        ", " + clockTime(c.time || "15:00")
+        ", " + clockTime(c.time || "15:00") + (c.repeat ? " ↻" : "")
       : "Set Schedule";
   };
 

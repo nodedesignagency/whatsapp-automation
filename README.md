@@ -159,11 +159,25 @@ Both are popovers anchored to their pill buttons, not full modals — the
 composer stays visible behind them, and both write straight through to the
 selected campaign.
 
-**Set Schedule** leads with presets (Today / Tomorrow / Next week) because
-most sends are near-term, then a month grid for everything else, then time as
-six common slots with a native time input for anything unusual. Past days are
-disabled rather than accepted-then-rejected, and the summary states the
-outcome in plain words ("Sends Friday 16 Oct, 3:00 PM").
+**Set Schedule** is a modal, not a popover — the calendar is the point, so it
+gets room. It runs in two steps: pick the day, then the time. One decision per
+screen instead of a wall of controls.
+
+Step 1 is a full month grid with presets above it (Today / Tomorrow / Next
+week), and each day carries a dot per campaign already scheduled on it, so you
+are not booking blind. A title never fits a 70px cell, so the dots are the
+marker and the count goes in the cell's `aria-label`. Past days are disabled
+rather than accepted-then-rejected.
+
+Step 2 has the six common time slots, an exact-time input, and the repeat row.
+
+Edits are held in a `pending` object and only written to the campaign on Save,
+so Cancel genuinely cancels.
+
+**Repeat** opens as a popover on top of the modal: how often (Once / Daily /
+Weekly / Monthly), which days when weekly, and until when (I stop it / a date /
+after N sends). It reads back in plain words — "Every week on Thu, Fri, 4
+times" — rather than leaving you to assemble the meaning from the controls.
 
 **Select Contact** puts saved lists above individual people. For broadcasting,
 one tap on a list is 128 recipients; picking people one at a time does not
