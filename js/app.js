@@ -19,6 +19,28 @@
      real chat rather than a list name */
   var SAMPLE_CONTACTS = ["Priya Sharma", "Rahul Mehta", "Anjali Verma", "Imran Qureshi", "Neha Gupta"];
 
+  /* Saved lists are the primary way a vendor picks recipients — one tap is
+     128 people. Individual contacts are the fallback, not the default. */
+  var AUDIENCES = [
+    { id: "all",      name: "All Customers",     count: 486 },
+    { id: "repeat",   name: "Repeat Customers",  count: 212 },
+    { id: "regular",  name: "Regular Buyers",    count: 128 },
+    { id: "walkins",  name: "Store Walk-ins",    count: 64 },
+    { id: "top",      name: "Top Spenders",      count: 41 },
+    { id: "waitlist", name: "Waitlist",          count: 37 },
+    { id: "pickups",  name: "Pending Pickups",   count: 23 }
+  ];
+
+  var CONTACTS = [
+    { id: "p1", name: "Priya Sharma",   phone: "+91 98200 12345" },
+    { id: "p2", name: "Rahul Mehta",    phone: "+91 98111 44821" },
+    { id: "p3", name: "Anjali Verma",   phone: "+91 99870 55210" },
+    { id: "p4", name: "Imran Qureshi",  phone: "+91 90040 71166" },
+    { id: "p5", name: "Neha Gupta",     phone: "+91 98330 90277" },
+    { id: "p6", name: "Vikram Singh",   phone: "+91 97020 31984" },
+    { id: "p7", name: "Meera Iyer",     phone: "+91 96500 22107" }
+  ];
+
   var AVATARS = [
     "assets/avatar-1.svg", "assets/avatar-2.svg", "assets/avatar-3.svg",
     "assets/avatar-4.svg", "assets/avatar-5.svg"
@@ -29,51 +51,51 @@
       id: "c1", status: "scheduled", date: "2026-10-16", time: "10:00",
       title: "Weekend Flash Sale",
       message: "Hi! Our weekend sale starts today — flat 25% off on all cotton kurtis. Reply SALE and we'll hold your size till evening.",
-      audience: "Regular Buyers", recipients: 128
+      lists: ["regular"], contacts: []
     },
     {
       id: "c2", status: "scheduled", date: "2026-10-16", time: "15:00",
       title: "New Arrivals — Diwali Collection",
       message: "New Diwali collection just landed 🪔 Silk sarees starting ₹2,499. Catalogue attached — tell us the code you like and we'll reserve it.",
-      audience: "Store Walk-ins", recipients: 64
+      lists: ["walkins"], contacts: []
     },
     {
       id: "c3", status: "scheduled", date: "2026-10-17", time: "11:30",
       title: "Early Bird Diwali Offer",
       message: "Book before 20 Oct and get free home delivery anywhere in the city. Limited to the first 50 orders.",
-      audience: "Repeat Customers", recipients: 212
+      lists: ["repeat"], contacts: []
     },
     {
       id: "c4", status: "scheduled", date: "2026-10-19", time: "18:30",
       title: "Restock Alert — Chikankari",
       message: "The chikankari sets you asked about are back in stock. Sizes S to XXL available. Want me to send photos?",
-      audience: "Waitlist", recipients: 37
+      lists: ["waitlist"], contacts: []
     },
 
     {
       id: "d1", status: "draft", date: null, time: null,
       title: "Untitled campaign",
       message: "",
-      audience: "No audience yet", recipients: 0
+      lists: [], contacts: []
     },
     {
       id: "d2", status: "draft", date: null, time: null,
       title: "Loyalty Discount — needs pricing",
       message: "For customers who ordered 3+ times this year. Discount amount still to be confirmed with accounts.",
-      audience: "Top Spenders", recipients: 41
+      lists: ["top"], contacts: []
     },
 
     {
       id: "s1", status: "sent", date: "2026-10-14", time: "10:00",
       title: "Navratri Closing Sale",
       message: "Last two days of the Navratri sale — up to 40% off. Store open till 9 PM.",
-      audience: "All Customers", recipients: 486, delivered: 471, read: 302
+      lists: ["all"], contacts: [], delivered: 471, read: 302
     },
     {
       id: "s2", status: "sent", date: "2026-10-15", time: "17:00",
       title: "Order Pickup Reminder",
       message: "Your order is packed and waiting at the store. Please collect it before Saturday.",
-      audience: "Pending Pickups", recipients: 23, delivered: 23, read: 21
+      lists: ["pickups"], contacts: [], delivered: 23, read: 21
     }
   ];
 
@@ -160,7 +182,16 @@
     liveDay: $("#liveDay"),
     chat: $(".phone__chat"),
     phoneName: $(".phone__name"),
-    phoneSub: $(".phone__sub")
+    phoneSub: $(".phone__sub"),
+
+    schedBtn: $("#schedBtn"), schedPop: $("#schedPop"), schedLabel: $("#schedLabel"),
+    schedPresets: $("#schedPresets"), schedMonth: $("#schedMonth"), schedGrid: $("#schedGrid"),
+    schedPrev: $("#schedPrev"), schedNext: $("#schedNext"), schedTimes: $("#schedTimes"),
+    schedTime: $("#schedTime"), schedSummary: $("#schedSummary"), schedDone: $("#schedDone"),
+
+    contactBtn: $("#contactBtn"), contactPop: $("#contactPop"), contactLabel: $("#contactLabel"),
+    pickSearch: $("#pickSearch"), pickList: $("#pickList"),
+    pickSummary: $("#pickSummary"), pickDone: $("#pickDone")
   };
 
   function visible() {
@@ -168,7 +199,7 @@
     return CAMPAIGNS.filter(function (c) {
       if (c.status !== state.status) return false;
       if (!q) return true;
-      return (c.title + " " + c.message + " " + c.audience).toLowerCase().indexOf(q) > -1;
+      return (c.title + " " + c.message + " " + audienceLabel(c)).toLowerCase().indexOf(q) > -1;
     });
   }
 
@@ -177,6 +208,37 @@
   }
 
   function isDraft() { return state.status === "draft"; }
+
+  function listById(id) {
+    for (var i = 0; i < AUDIENCES.length; i++) if (AUDIENCES[i].id === id) return AUDIENCES[i];
+    return null;
+  }
+  function personById(id) {
+    for (var i = 0; i < CONTACTS.length; i++) if (CONTACTS[i].id === id) return CONTACTS[i];
+    return null;
+  }
+
+  function recipientCount(c) {
+    if (!c) return 0;
+    return c.lists.reduce(function (n, id) {
+      var l = listById(id);
+      return n + (l ? l.count : 0);
+    }, 0) + c.contacts.length;
+  }
+
+  /* One list reads as its own name; anything else is counted, because
+     "Regular Buyers + 2 others" is more useful than a truncated list. */
+  function audienceLabel(c) {
+    if (!c) return "No audience yet";
+    var L = c.lists.length, K = c.contacts.length;
+    if (!L && !K) return "No audience yet";
+    if (L === 1 && !K) return listById(c.lists[0]).name;
+    if (!L && K === 1) return personById(c.contacts[0]).name;
+    var parts = [];
+    if (L) parts.push(L + (L > 1 ? " lists" : " list"));
+    if (K) parts.push(K + (K > 1 ? " contacts" : " contact"));
+    return parts.join(" + ");
+  }
 
   /* ------------------------------------------------------------- views */
 
@@ -328,7 +390,7 @@
                       '" tabindex="0" data-id="' + c.id + '">' +
                '<h4 class="campaign__title">' + c.title + "</h4>" +
                '<p class="campaign__excerpt' + (c.message ? "" : " is-empty") + '">' + excerpt + "</p>" +
-               '<div class="campaign__foot">' + stackMarkup(c.recipients) + "</div>" +
+               '<div class="campaign__foot">' + stackMarkup(recipientCount(c)) + "</div>" +
              "</article>" +
            "</div>";
   }
@@ -423,11 +485,12 @@
     els.editor.textContent = c.message;   /* :empty shows the placeholder */
 
     var idx = CAMPAIGNS.indexOf(c);
-    els.phoneName.textContent = c.recipients
+    var total = recipientCount(c);
+    els.phoneName.textContent = total
       ? SAMPLE_CONTACTS[idx % SAMPLE_CONTACTS.length]
       : "No recipient";
-    els.phoneSub.textContent = c.recipients
-      ? "preview · " + c.audience + " (" + c.recipients + ")"
+    els.phoneSub.textContent = total
+      ? "preview · " + audienceLabel(c) + " (" + total + ")"
       : "pick an audience to preview";
 
     renderLiveBubble();
@@ -523,8 +586,8 @@
       time: null,
       title: "",
       message: "",
-      audience: "No audience yet",
-      recipients: 0
+      lists: [],
+      contacts: []
     };
     CAMPAIGNS.push(draft);
 
@@ -642,6 +705,239 @@
     if (first) selectCampaign(first.id);
     else { els.title.textContent = ""; els.editor.textContent = ""; renderLiveBubble(); }
   });
+
+  /* ------------------------------------------------- popover plumbing */
+
+  var openPop = null;
+
+  function showPop(pop, btn, onOpen) {
+    if (openPop) hidePop();
+    pop.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    openPop = { pop: pop, btn: btn };
+    if (onOpen) onOpen();
+    document.addEventListener("mousedown", onPopOutside);
+    document.addEventListener("keydown", onPopEscape);
+  }
+
+  function hidePop() {
+    if (!openPop) return;
+    openPop.pop.hidden = true;
+    openPop.btn.setAttribute("aria-expanded", "false");
+    openPop = null;
+    document.removeEventListener("mousedown", onPopOutside);
+    document.removeEventListener("keydown", onPopEscape);
+  }
+
+  function onPopOutside(e) {
+    if (!openPop) return;
+    if (!openPop.pop.contains(e.target) && !openPop.btn.contains(e.target)) hidePop();
+  }
+  function onPopEscape(e) {
+    if (e.key === "Escape") { var b = openPop && openPop.btn; hidePop(); if (b) b.focus(); }
+  }
+
+  /* ------------------------------------------------------ set schedule */
+
+  /* Most sends are near-term, so the presets carry the common cases and the
+     grid is there for everything else. */
+  var TIME_SLOTS = ["09:00", "11:00", "13:00", "15:00", "18:00", "20:00"];
+
+  function shortDate(d) {
+    return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()].slice(0, 3);
+  }
+
+  function renderSched() {
+    var c = find(state.selectedId);
+    if (!c) return;
+    var chosen = c.date || state.selectedDate;
+    var time = c.time || "15:00";
+
+    /* presets */
+    Array.prototype.forEach.call(els.schedPresets.children, function (btn) {
+      var iso = key(addDays(TODAY, +btn.dataset.offset));
+      btn.classList.toggle("is-on", iso === chosen);
+    });
+
+    /* month grid — same day cells as the header popover */
+    var first = state.schedMonth;
+    els.schedMonth.textContent = MONTH[first.getMonth()] + " " + first.getFullYear();
+
+    var start = weekStart(first);
+    var html = "";
+    for (var i = 0; i < 42; i++) {
+      var day = addDays(start, i);
+      var iso = key(day);
+      var cls = "mday";
+      if (day.getMonth() !== first.getMonth()) cls += " mday--out";
+      if (iso === key(TODAY)) cls += " mday--today";
+      if (iso === chosen) cls += " mday--on";
+      /* a campaign cannot be scheduled into the past */
+      var past = day < TODAY && iso !== key(TODAY);
+      html += '<button type="button" class="' + cls + '" data-date="' + iso + '"' +
+              (past ? " disabled" : "") + ' aria-label="' + longDate(day) + '">' +
+              day.getDate() + "</button>";
+      if (i >= 27 && i % 7 === 6 && addDays(day, 1).getMonth() !== first.getMonth()) break;
+    }
+    els.schedGrid.innerHTML = html;
+    els.schedGrid.querySelectorAll(".mday").forEach(function (cell) {
+      cell.addEventListener("click", function () { setSchedule(cell.dataset.date, null); });
+    });
+
+    /* time */
+    els.schedTimes.innerHTML = TIME_SLOTS.map(function (t) {
+      return '<button type="button" class="timechip' + (t === time ? " is-on" : "") +
+             '" data-time="' + t + '">' + clockTime(t) + "</button>";
+    }).join("");
+    els.schedTimes.querySelectorAll(".timechip").forEach(function (chip) {
+      chip.addEventListener("click", function () { setSchedule(null, chip.dataset.time); });
+    });
+    els.schedTime.value = time;
+
+    els.schedSummary.textContent = "Sends " + shortDate(parse(chosen)) + ", " + clockTime(time);
+    els.schedLabel.textContent = c.date
+      ? parse(c.date).getDate() + " " + MONTH[parse(c.date).getMonth()].slice(0, 3) + ", " + clockTime(time)
+      : "Set Schedule";
+  }
+
+  function setSchedule(date, time) {
+    var c = find(state.selectedId);
+    if (!c) return;
+    if (date) { c.date = date; state.selectedDate = date; state.schedMonth = new Date(parse(date).getFullYear(), parse(date).getMonth(), 1); }
+    if (time) c.time = time;
+    if (!c.time) c.time = "15:00";
+    renderSched();
+    renderStrip();
+    if (!isDraft()) renderList();
+  }
+
+  els.schedBtn.addEventListener("click", function () {
+    if (openPop && openPop.pop === els.schedPop) return hidePop();
+    var c = find(state.selectedId);
+    var base = c && c.date ? parse(c.date) : parse(state.selectedDate);
+    state.schedMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+    showPop(els.schedPop, els.schedBtn, renderSched);
+  });
+
+  els.schedPresets.addEventListener("click", function (e) {
+    var btn = e.target.closest(".preset");
+    if (btn) setSchedule(key(addDays(TODAY, +btn.dataset.offset)), null);
+  });
+  els.schedPrev.addEventListener("click", function () {
+    state.schedMonth = new Date(state.schedMonth.getFullYear(), state.schedMonth.getMonth() - 1, 1);
+    renderSched();
+  });
+  els.schedNext.addEventListener("click", function () {
+    state.schedMonth = new Date(state.schedMonth.getFullYear(), state.schedMonth.getMonth() + 1, 1);
+    renderSched();
+  });
+  els.schedTime.addEventListener("input", function () {
+    if (els.schedTime.value) setSchedule(null, els.schedTime.value);
+  });
+  els.schedDone.addEventListener("click", hidePop);
+
+  /* ---------------------------------------------------- select contact */
+
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function initials(name) {
+    return name.split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join("").toUpperCase();
+  }
+
+  function renderPick() {
+    var c = find(state.selectedId);
+    if (!c) return;
+    var q = els.pickSearch.value.trim().toLowerCase();
+
+    var lists = AUDIENCES.filter(function (l) { return !q || l.name.toLowerCase().indexOf(q) > -1; });
+    var people = CONTACTS.filter(function (p) {
+      return !q || p.name.toLowerCase().indexOf(q) > -1 || p.phone.indexOf(q) > -1;
+    });
+
+    var html = "";
+    if (lists.length) {
+      html += '<p class="picksection">Lists</p>';
+      lists.forEach(function (l) {
+        var on = c.lists.indexOf(l.id) > -1;
+        html += '<button type="button" class="pickrow' + (on ? " is-on" : "") +
+                '" data-kind="list" data-id="' + l.id + '">' +
+                  '<span class="pickrow__avatar">' + l.count + "</span>" +
+                  '<span class="pickrow__meta">' +
+                    '<span class="pickrow__name">' + l.name + "</span>" +
+                    '<span class="pickrow__sub">' + l.count + " people</span>" +
+                  "</span>" +
+                  '<span class="pickrow__check">' + CHECK + "</span>" +
+                "</button>";
+      });
+    }
+    if (people.length) {
+      html += '<p class="picksection">People</p>';
+      people.forEach(function (pp) {
+        var on = c.contacts.indexOf(pp.id) > -1;
+        html += '<button type="button" class="pickrow' + (on ? " is-on" : "") +
+                '" data-kind="person" data-id="' + pp.id + '">' +
+                  '<span class="pickrow__avatar">' + initials(pp.name) + "</span>" +
+                  '<span class="pickrow__meta">' +
+                    '<span class="pickrow__name">' + pp.name + "</span>" +
+                    '<span class="pickrow__sub">' + pp.phone + "</span>" +
+                  "</span>" +
+                  '<span class="pickrow__check">' + CHECK + "</span>" +
+                "</button>";
+      });
+    }
+    if (!lists.length && !people.length) {
+      html = '<p class="pickempty">Nothing matches “' + els.pickSearch.value + '”</p>';
+    }
+
+    els.pickList.innerHTML = html;
+    els.pickList.querySelectorAll(".pickrow").forEach(function (row) {
+      row.addEventListener("click", function () { togglePick(row.dataset.kind, row.dataset.id); });
+    });
+
+    var total = recipientCount(c);
+    els.pickSummary.textContent = total
+      ? total + (total === 1 ? " person" : " people") + " · " + audienceLabel(c)
+      : "No one selected";
+    els.contactLabel.textContent = total ? audienceLabel(c) : "Select Contact";
+  }
+
+  function togglePick(kind, id) {
+    var c = find(state.selectedId);
+    if (!c) return;
+    var arr = kind === "list" ? c.lists : c.contacts;
+    var i = arr.indexOf(id);
+    if (i > -1) arr.splice(i, 1); else arr.push(id);
+
+    renderPick();
+    renderComposer();
+
+    var foot = els.list.querySelector('.campaign[data-id="' + c.id + '"] .campaign__foot');
+    if (foot) foot.innerHTML = stackMarkup(recipientCount(c));
+  }
+
+  els.contactBtn.addEventListener("click", function () {
+    if (openPop && openPop.pop === els.contactPop) return hidePop();
+    els.pickSearch.value = "";
+    showPop(els.contactPop, els.contactBtn, function () {
+      renderPick();
+      els.pickSearch.focus();
+    });
+  });
+  els.pickSearch.addEventListener("input", renderPick);
+  els.pickDone.addEventListener("click", hidePop);
+
+  /* keep both pill labels honest when the selection changes elsewhere */
+  var baseRenderComposer = renderComposer;
+  renderComposer = function () {
+    baseRenderComposer();
+    var c = find(state.selectedId);
+    if (!c) return;
+    els.contactLabel.textContent = recipientCount(c) ? audienceLabel(c) : "Select Contact";
+    els.schedLabel.textContent = c.date
+      ? parse(c.date).getDate() + " " + MONTH[parse(c.date).getMonth()].slice(0, 3) +
+        ", " + clockTime(c.time || "15:00")
+      : "Set Schedule";
+  };
 
   /* -------------------------------------------------------------- boot */
 

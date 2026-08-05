@@ -153,6 +153,26 @@ workspace, which then clipped it. Two fixes:
 Below 1160px the panel narrows past what seven 38px pills plus two arrows
 need, so the head padding and arrows shrink rather than the pills.
 
+### Set Schedule and Select Contact
+
+Both are popovers anchored to their pill buttons, not full modals — the
+composer stays visible behind them, and both write straight through to the
+selected campaign.
+
+**Set Schedule** leads with presets (Today / Tomorrow / Next week) because
+most sends are near-term, then a month grid for everything else, then time as
+six common slots with a native time input for anything unusual. Past days are
+disabled rather than accepted-then-rejected, and the summary states the
+outcome in plain words ("Sends Friday 16 Oct, 3:00 PM").
+
+**Select Contact** puts saved lists above individual people. For broadcasting,
+one tap on a list is 128 recipients; picking people one at a time does not
+scale past a handful. Each list row shows its size, one search filters both
+sections, and the footer keeps a running total.
+
+Both pill buttons then carry the current selection as their label, so the
+action bar states what will happen without opening anything.
+
 ### Action bar
 
 The Cancel / Confirm group matches the Figma frame at 146 x 36: Cancel, a 12px

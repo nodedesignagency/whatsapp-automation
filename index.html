@@ -268,15 +268,71 @@
           </button>
         </div>
 
-        <button class="pillbtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <span class="pillbtn__label">Set Schedule</span>
-        </button>
+        <span class="pop-anchor">
+          <button class="pillbtn" type="button" id="schedBtn" aria-haspopup="dialog" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span class="pillbtn__label" id="schedLabel">Set Schedule</span>
+          </button>
 
-        <button class="pillbtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="8.5" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3 3.3-4.6 6.5-4.6 1.3 0 2.5.3 3.5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 15.5h5M18.5 13v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <span class="pillbtn__label">Select Contact</span>
-        </button>
+          <div class="popover popover--sched" id="schedPop" role="dialog" aria-label="Set schedule" hidden>
+            <div class="presets" id="schedPresets">
+              <button class="preset" type="button" data-offset="0">Today</button>
+              <button class="preset" type="button" data-offset="1">Tomorrow</button>
+              <button class="preset" type="button" data-offset="7">Next week</button>
+            </div>
+
+            <div class="minimonth">
+              <div class="minimonth__head">
+                <button class="monthpop__nav" type="button" id="schedPrev" aria-label="Previous month">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="monthpop__title" id="schedMonth">October 2026</span>
+                <button class="monthpop__nav" type="button" id="schedNext" aria-label="Next month">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <div class="monthpop__dows" aria-hidden="true">
+                <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+              </div>
+              <div class="monthpop__grid" id="schedGrid"></div>
+            </div>
+
+            <p class="popover__label">Time</p>
+            <div class="times" id="schedTimes"></div>
+            <label class="time-custom">
+              <span>Another time</span>
+              <input type="time" id="schedTime" value="15:00" aria-label="Custom time" />
+            </label>
+
+            <div class="popover__foot">
+              <span class="popover__summary" id="schedSummary">Sends Friday 16 Oct, 3:00 PM</span>
+              <button class="btn btn--primary" type="button" id="schedDone">Done</button>
+            </div>
+          </div>
+        </span>
+
+        <span class="pop-anchor">
+          <button class="pillbtn" type="button" id="contactBtn" aria-haspopup="dialog" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="8.5" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3 3.3-4.6 6.5-4.6 1.3 0 2.5.3 3.5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 15.5h5M18.5 13v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span class="pillbtn__label" id="contactLabel">Select Contact</span>
+          </button>
+
+          <div class="popover popover--contacts" id="contactPop" role="dialog" aria-label="Choose who receives this" hidden>
+            <label class="search search--sm">
+              <span class="search__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </span>
+              <input type="search" id="pickSearch" placeholder="Search lists or people" aria-label="Search lists or people" />
+            </label>
+
+            <div class="picklist" id="pickList"></div>
+
+            <div class="popover__foot">
+              <span class="popover__summary" id="pickSummary">No one selected</span>
+              <button class="btn btn--primary" type="button" id="pickDone">Done</button>
+            </div>
+          </div>
+        </span>
 
         <div class="actionbar__end">
           <button class="btn btn--ghost" type="button" id="cancelBtn">Cancel</button>
