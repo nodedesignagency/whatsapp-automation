@@ -778,10 +778,12 @@
   }
 
   function shortDate(d) {
-    return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()].slice(0, 3);
+    return DAY_LONG[d.getDay()] + ", " + d.getDate() + " " +
+           MONTH[d.getMonth()].slice(0, 3) + " " + d.getFullYear();
   }
   function longDayDate(d) {
-    return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()];
+    return DAY_LONG[d.getDay()] + ", " + d.getDate() + " " +
+           MONTH[d.getMonth()] + " " + d.getFullYear();
   }
 
   function repeatText(r) {
@@ -874,6 +876,7 @@
       }).join("");
       node.querySelectorAll(".wheel__item").forEach(function (item, i) {
         item.addEventListener("click", function () {
+          if (node._dragged) return;      /* the pointer was spinning, not picking */
           node.scrollTo({ top: i * ITEM_H, behavior: "smooth" });
         });
       });
@@ -881,7 +884,46 @@
         clearTimeout(node._t);
         node._t = setTimeout(function () { settleWheel(col); }, 90);
       });
+
+      makeDraggable(node);
     });
+  }
+
+  /* Drag to spin, on top of native scrolling. Mouse only — touch and
+     trackpad already scroll these natively, and hijacking that would fight
+     the browser rather than help it. */
+  function makeDraggable(node) {
+    var down = false, startY = 0, startTop = 0;
+    var wheel = node.closest(".wheel");
+
+    node.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse") return;
+      down = true;
+      node._dragged = false;
+      startY = e.clientY;
+      startTop = node.scrollTop;
+      node.style.scrollSnapType = "none";
+      wheel.classList.add("is-dragging");
+      node.setPointerCapture(e.pointerId);
+    });
+
+    node.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dy = e.clientY - startY;
+      if (Math.abs(dy) > 3) node._dragged = true;
+      node.scrollTop = startTop - dy;
+    });
+
+    function release() {
+      if (!down) return;
+      down = false;
+      node.style.scrollSnapType = "";
+      wheel.classList.remove("is-dragging");
+      var i = Math.max(0, Math.min(node.children.length - 1, Math.round(node.scrollTop / ITEM_H)));
+      node.scrollTo({ top: i * ITEM_H, behavior: "smooth" });
+    }
+    node.addEventListener("pointerup", release);
+    node.addEventListener("pointercancel", release);
   }
 
   function settleWheel(col) {
@@ -950,6 +992,7 @@
     els.stepTime.hidden = step !== "time";
     els.stepSummary.hidden = step !== "summary";
 
+    els.schedPop.classList.toggle("is-time", step === "time");
     els.schedHeading.textContent = STEPS[step].heading;
     els.schedIntro.textContent = STEPS[step].intro;
 
@@ -961,7 +1004,7 @@
 
   function renderSummary() {
     els.chosenDate.textContent =
-      longDayDate(parse(pending.date)) + ", " + clockTime(pendingTime24());
+      longDayDate(parse(pending.date)) + " · " + clockTime(pendingTime24());
     els.repeatValue.textContent = repeatText(pending.repeat);
   }
 
@@ -975,12 +1018,21 @@
         : "Pick a date to continue";
     } else {
       els.bigSummary.textContent =
-        "Sends " + shortDate(parse(pending.date)) + ", " + clockTime(pendingTime24()) +
+        "Sends " + shortDate(parse(pending.date)) + " at " + clockTime(pendingTime24()) +
         (pending.repeat.freq === "none" ? "" : " · " + repeatText(pending.repeat).toLowerCase());
     }
   }
 
   /* ---- recurrence ---- */
+
+  /* Opens beside the schedule popover. Right is the default; it flips left
+     when the schedule popover is already close to the viewport edge, which
+     it usually is because it is right-aligned to its pill. */
+  function placeRepeatPop() {
+    els.repeatPop.classList.remove("flip-left");
+    var r = els.repeatPop.getBoundingClientRect();
+    if (r.right > window.innerWidth - 12) els.repeatPop.classList.add("flip-left");
+  }
 
   function renderRepeat() {
     var r = pending.repeat;
@@ -1017,7 +1069,10 @@
   els.repeatBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     if (currentPop() && currentPop().pop === els.repeatPop) return hidePop();
-    showPop(els.repeatPop, els.repeatBtn, renderRepeat, true);   /* nested */
+    showPop(els.repeatPop, els.repeatBtn, function () {
+      renderRepeat();
+      placeRepeatPop();
+    }, true);   /* nested */
   });
   els.repeatFreq.addEventListener("click", function (e) {
     var chip = e.target.closest(".timechip");
