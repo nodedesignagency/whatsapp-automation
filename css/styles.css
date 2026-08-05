@@ -321,6 +321,8 @@ svg{ display:block; }
   font-weight:600;
 }
 .mday--on:hover{ background:var(--brand); }
+.mday--off{ opacity:.3; cursor:default; }
+.mday--off:hover{ background:none; }
 .mday__dot{
   position:absolute;
   left:50%;
@@ -482,6 +484,13 @@ svg{ display:block; }
 }
 .dpill.is-active .dpill__dot{ display:none; }
 .dpill__dot[hidden]{ display:none; }
+/* hollow: this day's campaigns are real, they just live in another tab */
+.dpill__dot--other{ background:transparent; box-shadow:inset 0 0 0 1.5px var(--brand); opacity:.8; }
+
+/* A past day with nothing on it cannot be opened and cannot be filled, so it
+   is shown as unavailable rather than silently ignoring the tap. */
+.dpill.is-off{ opacity:.38; cursor:default; }
+.dpill.is-off:hover{ background:none; }
 
 /* segmented control */
 .segmented{
@@ -583,6 +592,37 @@ svg{ display:block; }
 .panel__scroll::-webkit-scrollbar-thumb{ background:#DDD; border-radius:3px; }
 
 .daygroup + .daygroup{ margin-top:22px; }
+.daygroup.is-selected .daygroup__title{ color:var(--brand); }
+
+/* The selected day when it holds nothing — a slot to fill, not a gap. */
+.dayempty{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  border:1px dashed var(--line-strong);
+  border-radius:var(--r-md);
+}
+.dayempty__text{ margin:0; font-size:13px; color:var(--text-faint); }
+.dayempty__add{
+  padding:5px 10px;
+  border-radius:var(--r-pill);
+  background:var(--brand-soft);
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--brand);
+}
+.dayempty__add:hover{ background:rgba(56,174,106,.16); }
+.dayempty__link{
+  margin-left:auto;
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--text-body);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+.dayempty__link:hover{ color:var(--text-strong); }
 .daygroup__title{
   display:flex;
   align-items:center;

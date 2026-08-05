@@ -245,6 +245,32 @@
     return visible().filter(function (c) { return c.date === iso; }).length;
   }
 
+  /* Everything on a day, whatever tab it lives in. Drafts are left out —
+     a draft has no date to sit on until it is scheduled. */
+  function onDay(iso) {
+    return CAMPAIGNS.filter(function (c) {
+      return c.status !== "draft" && c.date === iso;
+    });
+  }
+
+  function isPast(iso) { return parse(iso) < TODAY; }
+
+  /* Today and the future are always open, because you can still schedule
+     into them. A past day is only worth opening if something happened on
+     it — an empty past day has nothing to show and nothing to add. */
+  function selectable(iso) { return !isPast(iso) || onDay(iso).length > 0; }
+
+  /* Which tab a day belongs in. The user's current tab wins when it holds
+     that day's campaigns; otherwise follow the campaigns rather than
+     assuming "past means sent" — an overdue campaign is still scheduled. */
+  function statusFor(iso) {
+    var found = onDay(iso);
+    if (!found.length) return state.status;
+    if (found.some(function (c) { return c.status === state.status; })) return state.status;
+    if (found.some(function (c) { return c.status === "sent"; })) return "sent";
+    return found[0].status;
+  }
+
   function isDraft() { return state.status === "draft"; }
 
   function listById(id) {
@@ -358,10 +384,22 @@
       btn.setAttribute("aria-selected", iso === state.selectedDate ? "true" : "false");
       btn.setAttribute("aria-label", longDate(day));
 
+      if (!selectable(iso)) {
+        btn.disabled = true;
+        btn.classList.add("is-off");
+      }
+
+      /* Two dots so the strip tells the whole truth before it is tapped: a
+         solid one for this tab, a hollow one for a day whose campaigns live
+         in another. Without the second, a selectable past day and a dead one
+         look identical. */
+      var here = countOn(iso), elsewhere = !here && onDay(iso).length;
+
       btn.innerHTML =
         '<span class="dpill__num">' + day.getDate() + "</span>" +
         '<span class="dpill__day">' + DAY_SHORT[day.getDay()] + "</span>" +
-        '<span class="dpill__dot"' + (countOn(iso) ? "" : " hidden") + "></span>";
+        '<span class="dpill__dot' + (elsewhere ? " dpill__dot--other" : "") + '"' +
+          (here || elsewhere ? "" : " hidden") + "></span>";
 
       btn.addEventListener("click", onPickDate);
       li.appendChild(btn);
@@ -391,8 +429,10 @@
       if (outside) cls += " mday--out";
       if (iso === key(TODAY)) cls += " mday--today";
       if (iso === state.selectedDate) cls += " mday--on";
+      if (!selectable(iso)) cls += " mday--off";
 
       html += '<button type="button" class="' + cls + '" data-date="' + iso + '"' +
+              (selectable(iso) ? "" : " disabled") +
               ' aria-label="' + longDate(day) + '">' + day.getDate() +
               (count ? '<span class="mday__dot"></span>' : "") +
               "</button>";
@@ -405,13 +445,22 @@
 
     els.popGrid.querySelectorAll(".mday").forEach(function (cell) {
       cell.addEventListener("click", function () {
-        state.selectedDate = cell.dataset.date;
-        state.week = weekStart(parse(cell.dataset.date));
+        var iso = cell.dataset.date;
+        if (!selectable(iso)) return;
+
+        state.selectedDate = iso;
+        state.week = weekStart(parse(iso));
         closeMonthPop();
+
+        var next = statusFor(iso);
+        if (next !== state.status) {
+          var tab = document.querySelector('.segmented__item[data-status="' + next + '"]');
+          if (tab) tab.click();
+        }
+
         renderStrip();
         renderList();
-        var group = els.list.querySelector('.daygroup[data-date="' + state.selectedDate + '"]');
-        if (group) group.scrollIntoView({ behavior: "smooth", block: "start" });
+        anchorSelectedDay();
       });
     });
   }
@@ -497,6 +546,29 @@
       '<path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
     "</svg>";
 
+  /* The empty selected day. It is never a dead end: a future day offers the
+     campaign it is missing, and a day whose campaigns live in another tab
+     says so and offers the trip. */
+  function emptyDayMarkup(iso) {
+    var others = onDay(iso).filter(function (c) { return c.status !== state.status; });
+    var hint = "";
+    if (others.length) {
+      hint = '<button class="dayempty__link" type="button" data-goto="' + others[0].status + '">' +
+               others.length + " " + others[0].status + " that day →</button>";
+    }
+    /* Past days and the Sent tab are both about what happened, not what is
+       planned, so the sentence follows whichever applies. */
+    var went = isPast(iso) || state.status === "sent";
+
+    return '<div class="dayempty">' +
+             '<p class="dayempty__text">Nothing ' +
+               (went ? "went out" : "scheduled") + " on this day</p>" +
+             (isPast(iso) ? "" : '<button class="dayempty__add" type="button" data-add="' +
+                                 iso + '">+ Add campaign</button>') +
+             hint +
+           "</div>";
+  }
+
   function renderList() {
     /* Drafts carry no date, so the week strip does not filter them. */
     var items = isDraft() ? visible() : visible().filter(function (c) {
@@ -531,23 +603,50 @@
         return a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date);
       });
 
-      var currentDay = null;
-      items.forEach(function (c) {
-        if (c.date !== currentDay) {
-          if (currentDay !== null) html += "</section>";
-          currentDay = c.date;
-          html += '<section class="daygroup" data-date="' + c.date + '">' +
-                    '<h3 class="daygroup__title">' +
-                      '<span class="daygroup__icon" aria-hidden="true">' + CAL_ICON + "</span>" +
-                      longDate(parse(c.date)) +
-                    "</h3>";
+      var days = [];
+      items.forEach(function (c) { if (days.indexOf(c.date) < 0) days.push(c.date); });
+
+      /* The selected day keeps its place in the week even when it holds
+         nothing, so picking an empty day lands you on a slot you can fill
+         rather than on a gap between two other days. */
+      var sel = state.selectedDate;
+      var selDate = parse(sel);
+      if (days.indexOf(sel) < 0 &&
+          selDate >= state.week && selDate <= addDays(state.week, 6)) {
+        days.push(sel);
+      }
+      days.sort();
+
+      days.forEach(function (iso) {
+        html += '<section class="daygroup' + (iso === sel ? " is-selected" : "") +
+                '" data-date="' + iso + '">' +
+                  '<h3 class="daygroup__title">' +
+                    '<span class="daygroup__icon" aria-hidden="true">' + CAL_ICON + "</span>" +
+                    longDate(parse(iso)) +
+                  "</h3>";
+
+        var dayItems = items.filter(function (c) { return c.date === iso; });
+        if (dayItems.length) {
+          dayItems.forEach(function (c) { html += cardMarkup(c); });
+        } else {
+          html += emptyDayMarkup(iso);
         }
-        html += cardMarkup(c);
+        html += "</section>";
       });
-      html += "</section>";
     }
 
     els.list.innerHTML = html;
+
+    els.list.querySelectorAll(".dayempty__add").forEach(function (btn) {
+      btn.addEventListener("click", function () { createDraft(btn.dataset.add); });
+    });
+    els.list.querySelectorAll(".dayempty__link").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var tab = document.querySelector('.segmented__item[data-status="' + btn.dataset.goto + '"]');
+        if (tab) tab.click();
+        anchorSelectedDay();
+      });
+    });
 
     els.list.querySelectorAll(".campaign").forEach(function (card) {
       card.addEventListener("click", function () { selectCampaign(card.dataset.id); });
@@ -625,9 +724,26 @@
 
   function onPickDate(e) {
     var btn = e.currentTarget;
-    state.selectedDate = btn.dataset.date;
-    renderStrip();
+    var iso = btn.dataset.date;
+    if (!selectable(iso)) return;
 
+    state.selectedDate = iso;
+
+    /* Only ever switches when the day has nothing in the current tab, and a
+       day is only clickable when it has something somewhere — so the tab
+       never changes under a user who could not have predicted it. */
+    var next = statusFor(iso);
+    if (next !== state.status) {
+      var tab = document.querySelector('.segmented__item[data-status="' + next + '"]');
+      if (tab) tab.click();          /* re-renders the strip and the list */
+    }
+
+    renderStrip();
+    renderList();
+    anchorSelectedDay();
+  }
+
+  function anchorSelectedDay() {
     var group = els.list.querySelector('.daygroup[data-date="' + state.selectedDate + '"]');
     if (group) group.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -675,13 +791,15 @@
 
   var draftSeq = 0;
 
-  els.newDraft.addEventListener("click", function () {
+  /* iso is the day the draft starts life on; null keeps it unscheduled, which
+     is what the panel's own New Draft button wants. */
+  function createDraft(iso) {
     draftSeq += 1;
     var draft = {
       id: "new" + draftSeq,
       status: "draft",
-      date: null,      /* a draft has no schedule until it is confirmed */
-      time: null,
+      date: iso || null,   /* a draft has no schedule until it is confirmed */
+      time: iso ? "10:00" : null,
       title: "",
       message: "",
       lists: [],
@@ -699,7 +817,9 @@
     renderList();
     renderComposer();
     els.title.focus();
-  });
+  }
+
+  els.newDraft.addEventListener("click", function () { createDraft(null); });
 
   els.search.addEventListener("input", function () {
     state.query = els.search.value;
