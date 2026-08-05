@@ -750,7 +750,7 @@ svg{ display:block; }
 }
 .composer__empty[hidden]{ display:none; }
 .composer__empty-title{
-  margin:18px 0 0;
+  margin:2px 0 0;
   font-size:17px;
   font-weight:600;
   letter-spacing:-.01em;
@@ -759,84 +759,161 @@ svg{ display:block; }
 .composer__empty-body{ margin:0; font-size:13.5px; max-width:34ch; line-height:1.55; }
 .composer__empty .btn--primary{ margin-top:8px; padding:0 16px; }
 
-/* ---- the unwritten thread ----
-   The empty composer shows the thing it is about to make: two bubbles that
-   have already been said, receding into the page, and the one still to be
-   written waiting in front with the caret already blinking in it. Bubble
-   geometry and radii are the preview's own, so it reads as this product's
-   chat and not as generic placeholder furniture. */
-.unwritten{
-  position:relative;
-  width:236px;
-  height:132px;
-  isolation:isolate;
+/* ---- hero art ----
+   The render's studio grey is a shade off the workspace, so a radial mask
+   dissolves its edges instead of letting a rectangle seam show. The float is
+   the reference language's levitation, slowed to furniture speed. */
+.composer__empty-art{
+  width:min(320px, 70%);
+  -webkit-mask-image:radial-gradient(72% 68% at 50% 48%, #000 52%, transparent 97%);
+          mask-image:radial-gradient(72% 68% at 50% 48%, #000 52%, transparent 97%);
+  animation:art-float 5.2s ease-in-out infinite alternate;
 }
+@keyframes art-float{
+  from{ transform:translateY(4px); }
+  to  { transform:translateY(-5px); }
+}
+@media (prefers-reduced-motion: reduce){ .composer__empty-art{ animation:none; } }
+
+/* variant switching: image by default, thread or icon one class away */
+.composer__empty .unwritten{ display:none; }
+.composer__empty--thread .unwritten{ display:flex; }
+.composer__empty--thread .composer__empty-art{ display:none; }
+.composer__empty--plain .composer__empty-art{ display:none; }
+
+/* ---- the unwritten thread ----
+   A cropped slice of a real exchange: an incoming bubble and a green reply
+   fading out at the top the way the reference invoice is cut mid-row, and
+   the one message not written yet crisp at the bottom, held by four green
+   focus corners with the caret already blinking. Geometry, radii, meta row
+   and tick marks are the phone preview's own, so this is the product's chat
+   at rest, not placeholder furniture. */
+.unwritten{
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+  width:288px;
+  padding-top:10px;
+  /* the conversation has been going on for longer than the frame shows */
+  -webkit-mask-image:linear-gradient(180deg, transparent 0, rgba(0,0,0,.72) 22%, #000 46%);
+          mask-image:linear-gradient(180deg, transparent 0, rgba(0,0,0,.72) 22%, #000 46%);
+}
+.unwritten__row{ display:flex; align-items:flex-end; gap:8px; }
+.unwritten__row--out{ justify-content:flex-end; }
+.unwritten__row--draft{ justify-content:flex-end; margin-top:9px; }
+
+.unwritten__avatar{
+  width:22px; height:22px; flex:0 0 22px;
+  border-radius:50%;
+  background:linear-gradient(150deg, #E9EAEC 0%, #DDDFE2 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(42,51,70,.08);
+}
+
 .unwritten__bub{
-  position:absolute;
+  position:relative;
   display:flex;
   flex-direction:column;
   justify-content:center;
   gap:6px;
   padding:11px 13px;
-  border-radius:14px;
+  border-radius:13px;
 }
 .unwritten__bub i{
   display:block;
   height:6px;
   border-radius:3px;
   background:currentColor;
-  opacity:.22;
+  opacity:.2;
 }
 
-/* said, and receding: further back means smaller, softer, blurred */
+/* said, and receding — depth is opacity and a touch of blur, never colour */
 .unwritten__bub--in{
-  top:0; left:6px;
-  width:132px;
+  width:158px;
   border-bottom-left-radius:5px;
   background:var(--bg-surface);
   color:var(--text-body);
   box-shadow:0 0 0 1px var(--line), var(--sh-sm);
-  opacity:.5;
-  filter:blur(1.4px);
-  transform:scale(.94);
+  opacity:.68;
+  filter:blur(.4px);
 }
-.unwritten__bub--in i:last-child{ width:64%; }
+.unwritten__bub--in i:last-child{ width:62%; }
 
 .unwritten__bub--out{
-  top:38px; right:0;
-  width:150px;
+  width:184px;
+  padding-bottom:8px;
   border-bottom-right-radius:5px;
-  background:var(--brand-soft);
+  background:linear-gradient(180deg, #EAF7F0 0%, #E2F3EA 100%);
   color:var(--brand);
-  box-shadow:0 0 0 1px rgba(56,174,106,.14);
-  opacity:.62;
-  filter:blur(.7px);
-  transform:scale(.97);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 1px rgba(56,174,106,.12), var(--sh-sm);
+  opacity:.85;
 }
-.unwritten__bub--out i:last-child{ width:52%; }
+.unwritten__bub--out i:last-child{ width:48%; }
+.unwritten__meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:3px;
+  margin-top:1px;
+  font-size:8.5px;
+  font-weight:500;
+  letter-spacing:.02em;
+  color:rgba(56,174,106,.75);
+}
+.unwritten__meta svg{ width:11px; height:8px; color:#53BDEB; }
 
-/* not said yet: crisp, in front, and open */
+/* not said yet: the focus corners are the invoice reference's TO-field
+   brackets — they mark where the next thing goes without shouting */
+.unwritten__frame{
+  position:relative;
+  display:block;
+  padding:6px;
+}
+.unwritten__frame::before,
+.unwritten__frame::after{
+  content:"";
+  position:absolute;
+  width:15px; height:15px;
+  border:1.5px solid rgba(56,174,106,.65);
+}
+.unwritten__frame::before{
+  top:0; left:0;
+  border-right:0; border-bottom:0;
+  border-top-left-radius:7px;
+}
+.unwritten__frame::after{
+  right:0; bottom:0;
+  border-left:0; border-top:0;
+  border-bottom-right-radius:7px;
+}
 .unwritten__bub--draft{
-  bottom:0; right:14px;
-  width:168px;
-  height:44px;
+  width:196px;
+  height:48px;
   border-bottom-right-radius:5px;
   background:var(--bg-surface);
   box-shadow:0 0 0 1px var(--line), var(--sh-md);
   align-items:flex-start;
-  justify-content:center;
 }
 .unwritten__caret{
   width:2px;
   height:17px;
-  margin-left:2px;
+  margin-left:3px;
   border-radius:1px;
   background:var(--brand);
   animation:caret-blink 1.15s steps(1, end) infinite;
 }
 @keyframes caret-blink{ 0%,55%{ opacity:1; } 56%,100%{ opacity:0; } }
+
+/* one quiet entrance: the exchange settles in, oldest first */
+.unwritten__row{ animation:row-in .5s cubic-bezier(.2,.7,.3,1) both; }
+.unwritten__row--in{ animation-delay:.05s; }
+.unwritten__row--out{ animation-delay:.13s; }
+.unwritten__row--draft{ animation-delay:.21s; }
+@keyframes row-in{
+  from{ opacity:0; transform:translateY(7px); }
+  to  { opacity:1; transform:none; }
+}
 @media (prefers-reduced-motion: reduce){
-  .unwritten__caret{ animation:none; }
+  .unwritten__caret, .unwritten__row{ animation:none; }
 }
 
 /* the icon-only version this replaced, kept one class away */

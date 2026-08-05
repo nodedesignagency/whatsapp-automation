@@ -176,20 +176,39 @@
            holding a message the user did not ask to open -->
       <div class="composer__empty" id="composerEmpty" hidden>
 
-        <!-- An unwritten thread: two bubbles that have already been said,
-             receding, and the one you have not written yet waiting in front.
-             Swap the wrapper class for composer__empty--plain to fall back to
-             the icon-and-text version. -->
+        <!-- The hero: a rendered chat bubble, cropped from its studio frame
+             and edge-masked so it sits in the workspace rather than on a
+             card. Variants: composer__empty--thread swaps it for the CSS
+             conversation below; composer__empty--plain for the icon. -->
+        <img class="composer__empty-art" src="assets/empty-chat.jpg" alt="" />
+
+        <!-- An unwritten thread, v2: a cropped slice of a real exchange.
+             The top of the conversation fades out mid-bubble the way the
+             invoice card in the reference is cut mid-row — what matters is
+             the crisp draft bubble at the bottom, framed by focus corners,
+             caret already blinking. Swap the wrapper class for
+             composer__empty--plain to fall back to the icon version. -->
         <div class="unwritten" aria-hidden="true">
-          <span class="unwritten__bub unwritten__bub--in">
-            <i></i><i></i>
-          </span>
-          <span class="unwritten__bub unwritten__bub--out">
-            <i></i><i></i>
-          </span>
-          <span class="unwritten__bub unwritten__bub--draft">
-            <span class="unwritten__caret"></span>
-          </span>
+          <div class="unwritten__row unwritten__row--in">
+            <span class="unwritten__avatar"></span>
+            <span class="unwritten__bub unwritten__bub--in"><i></i><i></i></span>
+          </div>
+          <div class="unwritten__row unwritten__row--out">
+            <span class="unwritten__bub unwritten__bub--out">
+              <i></i><i></i>
+              <span class="unwritten__meta">
+                10:42
+                <svg viewBox="0 0 16 11" fill="none"><path d="M1 6.2 3.6 9 9 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 6.2 9.2 9l5.4-6.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </span>
+          </div>
+          <div class="unwritten__row unwritten__row--draft">
+            <span class="unwritten__frame">
+              <span class="unwritten__bub unwritten__bub--draft">
+                <span class="unwritten__caret"></span>
+              </span>
+            </span>
+          </div>
         </div>
 
         <h3 class="composer__empty-title">Your next message starts here</h3>
