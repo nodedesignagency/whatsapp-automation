@@ -159,25 +159,30 @@ Both are popovers anchored to their pill buttons, not full modals — the
 composer stays visible behind them, and both write straight through to the
 selected campaign.
 
-**Set Schedule** is a modal, not a popover — the calendar is the point, so it
-gets room. It runs in two steps: pick the day, then the time. One decision per
-screen instead of a wall of controls.
+**Set Schedule** is a 560px popover anchored to its pill, running three steps
+with one decision each. The footer's primary button carries the step:
+Continue -> Confirm -> Save.
 
-Step 1 is a full month grid with presets above it (Today / Tomorrow / Next
-week), and each day carries a dot per campaign already scheduled on it, so you
-are not booking blind. A title never fits a 70px cell, so the dots are the
-marker and the count goes in the cell's `aria-label`. Past days are disabled
-rather than accepted-then-rejected.
+1. **Date** — a full month grid: 82px cells, the number top-right, and the
+   titles of campaigns already booked that day, so you are not scheduling
+   blind. Past days are disabled rather than accepted-then-rejected. The grid
+   scrolls; the header, month bar and footer stay put.
+2. **Time** — three snap-scrolling wheels (hour, minute in 5s, AM/PM) with the
+   selection under a centre band and the neighbours faded out. Clicking an item
+   scrolls it to centre, so it works without dragging.
+3. **Confirm** — the chosen date and time with a Change link back to step 1,
+   plus the repeat row.
 
-Step 2 has the six common time slots, an exact-time input, and the repeat row.
+Edits are held in a `pending` object and only written on Save, so Cancel
+genuinely cancels.
 
-Edits are held in a `pending` object and only written to the campaign on Save,
-so Cancel genuinely cancels.
+**Repeat** opens nested on top: how often (Once / Daily / Weekly / Monthly),
+which days when weekly, and until when (I stop it / a date / after N sends).
+It reads back in plain words — "Every week on Thu, Fri, 4 times".
 
-**Repeat** opens as a popover on top of the modal: how often (Once / Daily /
-Weekly / Monthly), which days when weekly, and until when (I stop it / a date /
-after N sends). It reads back in plain words — "Every week on Thu, Fri, 4
-times" — rather than leaving you to assemble the meaning from the controls.
+Popovers are tracked in a stack rather than a single slot, because Repeat opens
+over the schedule popover and must not close it; outside clicks and Escape only
+dismiss the topmost.
 
 **Select Contact** puts saved lists above individual people. For broadcasting,
 one tap on a list is 128 recipients; picking people one at a time does not

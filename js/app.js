@@ -184,14 +184,15 @@
     phoneName: $(".phone__name"),
     phoneSub: $(".phone__sub"),
 
-    schedBtn: $("#schedBtn"), schedLabel: $("#schedLabel"),
-    schedBackdrop: $("#schedBackdrop"), schedIntro: $("#schedIntro"),
-    stepDate: $("#stepDate"), stepTime: $("#stepTime"),
-    bigPresets: $("#bigPresets"), bigMonth: $("#bigMonth"), bigYear: $("#bigYear"),
+    schedBtn: $("#schedBtn"), schedLabel: $("#schedLabel"), schedPop: $("#schedPop"),
+    schedHeading: $("#schedHeading"), schedIntro: $("#schedIntro"),
+    stepDate: $("#stepDate"), stepTime: $("#stepTime"), stepSummary: $("#stepSummary"),
+    bigMonth: $("#bigMonth"), bigYear: $("#bigYear"),
     bigGrid: $("#bigGrid"), bigToday: $("#bigToday"), bigPrev: $("#bigPrev"), bigNext: $("#bigNext"),
-    bigTimes: $("#bigTimes"), bigTime: $("#bigTime"), bigSummary: $("#bigSummary"),
+    wheelHour: $("#wheelHour"), wheelMinute: $("#wheelMinute"), wheelPeriod: $("#wheelPeriod"),
+    bigSummary: $("#bigSummary"),
     chosenDate: $("#chosenDate"), backToDate: $("#backToDate"),
-    schedCancel: $("#schedCancel"), schedSave: $("#schedSave"),
+    schedCancel: $("#schedCancel"), schedNextBtn: $("#schedNextBtn"),
     repeatBtn: $("#repeatBtn"), repeatPop: $("#repeatPop"), repeatValue: $("#repeatValue"),
     repeatFreq: $("#repeatFreq"), repeatDaysWrap: $("#repeatDaysWrap"), repeatDays: $("#repeatDays"),
     repeatEndsWrap: $("#repeatEndsWrap"), repeatEnds: $("#repeatEnds"),
@@ -717,45 +718,60 @@
 
   /* ------------------------------------------------- popover plumbing */
 
-  var openPop = null;
+  /* A stack, not a single slot: the Repeat popover opens on top of the
+     schedule popover, and opening it must not close its parent. Outside
+     clicks and Escape only dismiss the topmost one. */
+  var popStack = [];
 
-  function showPop(pop, btn, onOpen) {
-    if (openPop) hidePop();
+  Object.defineProperty(window, "__popDepth", { get: function () { return popStack.length; } });
+
+  function currentPop() { return popStack[popStack.length - 1] || null; }
+
+  function showPop(pop, btn, onOpen, nested) {
+    if (!nested) while (popStack.length) hidePop();
     pop.hidden = false;
     btn.setAttribute("aria-expanded", "true");
-    openPop = { pop: pop, btn: btn };
+    popStack.push({ pop: pop, btn: btn });
     if (onOpen) onOpen();
-    document.addEventListener("mousedown", onPopOutside);
-    document.addEventListener("keydown", onPopEscape);
+    if (popStack.length === 1) {
+      document.addEventListener("mousedown", onPopOutside);
+      document.addEventListener("keydown", onPopEscape);
+    }
   }
 
   function hidePop() {
-    if (!openPop) return;
-    openPop.pop.hidden = true;
-    openPop.btn.setAttribute("aria-expanded", "false");
-    openPop = null;
-    document.removeEventListener("mousedown", onPopOutside);
-    document.removeEventListener("keydown", onPopEscape);
+    var top = popStack.pop();
+    if (!top) return;
+    top.pop.hidden = true;
+    top.btn.setAttribute("aria-expanded", "false");
+    if (!popStack.length) {
+      document.removeEventListener("mousedown", onPopOutside);
+      document.removeEventListener("keydown", onPopEscape);
+    }
   }
 
   function onPopOutside(e) {
-    if (!openPop) return;
-    if (!openPop.pop.contains(e.target) && !openPop.btn.contains(e.target)) hidePop();
+    var top = currentPop();
+    if (!top) return;
+    if (!top.pop.contains(e.target) && !top.btn.contains(e.target)) hidePop();
   }
   function onPopEscape(e) {
-    if (e.key === "Escape") { var b = openPop && openPop.btn; hidePop(); if (b) b.focus(); }
+    if (e.key !== "Escape") return;
+    var top = currentPop();
+    hidePop();
+    if (top) top.btn.focus();
   }
 
   /* ------------------------------------------------------ set schedule */
 
-  /* A modal rather than a popover: the calendar is the point, so it gets
-     room. Step 1 picks the day, step 2 the time — one decision per screen
-     instead of a wall of controls. Edits are held in `pending` and only
-     written to the campaign on Save, so Cancel really cancels. */
+  /* Three steps in one popover: pick the day, then the time, then confirm
+     and set repeat. Edits are held in `pending` and only written to the
+     campaign on Save, so Cancel genuinely cancels. */
 
-  var TIME_SLOTS = ["09:00", "11:00", "13:00", "15:00", "18:00", "20:00"];
   var DOW_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];   // Monday-first
+  var ITEM_H = 44;
   var pending = null;
+  var schedStep = "date";
 
   function blankRepeat() {
     return { freq: "none", days: [], ends: "never", endsOn: null, endsAfter: 4 };
@@ -764,6 +780,9 @@
   function shortDate(d) {
     return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()].slice(0, 3);
   }
+  function longDayDate(d) {
+    return DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()];
+  }
 
   function repeatText(r) {
     if (!r || r.freq === "none") return "Send once";
@@ -771,9 +790,8 @@
     if (r.freq === "daily") base = "Every day";
     else if (r.freq === "monthly") base = "Every month";
     else {
-      var names = r.days.slice().sort().map(function (i) {
-        return DAY_SHORT[(i + 1) % 7];
-      });
+      var names = r.days.slice().sort(function (a, b) { return a - b; })
+        .map(function (i) { return DAY_SHORT[(i + 1) % 7]; });
       base = names.length ? "Every week on " + names.join(", ") : "Every week";
     }
     if (r.ends === "on" && r.endsOn) return base + ", until " + shortDate(parse(r.endsOn));
@@ -781,16 +799,12 @@
     return base;
   }
 
-  /* ---- step 1 ---- */
+  /* ---- step 1 · month grid ---- */
 
   function renderBigCal() {
     var first = state.schedMonth;
     els.bigMonth.textContent = MONTH[first.getMonth()];
     els.bigYear.textContent = first.getFullYear();
-
-    Array.prototype.forEach.call(els.bigPresets.children, function (btn) {
-      btn.classList.toggle("is-on", key(addDays(TODAY, +btn.dataset.offset)) === pending.date);
-    });
 
     var start = weekStart(first);
     var html = "";
@@ -808,17 +822,19 @@
       var booked = CAMPAIGNS.filter(function (c) {
         return c.date === iso && c.status !== "draft" && c.id !== state.selectedId;
       });
+      var tags = booked.slice(0, 2).map(function (c) {
+        return '<span class="calcell__tag">' + c.title + "</span>";
+      }).join("");
+      if (booked.length > 2) {
+        tags += '<span class="calcell__more">+' + (booked.length - 2) + " more</span>";
+      }
 
       html += '<button type="button" class="' + cls + '" data-date="' + iso + '"' +
-              (past ? " disabled" : "") + ' aria-label="' + longDate(day) +
+              (past ? " disabled" : "") +
+              ' aria-label="' + longDate(day) +
               (booked.length ? " — " + booked.length + " already scheduled" : "") + '">' +
                 '<span class="calcell__num">' + day.getDate() + "</span>" +
-                (booked.length
-                  ? '<span class="calcell__marks">' +
-                      new Array(Math.min(booked.length, 3) + 1).join('<span class="calcell__dot"></span>') +
-                      (booked.length > 3 ? '<span class="calcell__more">+' + (booked.length - 3) + "</span>" : "") +
-                    "</span>"
-                  : "") +
+                (tags ? '<span class="calcell__tags">' + tags + "</span>" : "") +
               "</button>";
       if (i >= 27 && i % 7 === 6 && addDays(day, 1).getMonth() !== first.getMonth()) break;
     }
@@ -827,50 +843,141 @@
     els.bigGrid.querySelectorAll(".calcell:not([disabled])").forEach(function (cell) {
       cell.addEventListener("click", function () {
         pending.date = cell.dataset.date;
-        goToStep("time");
+        renderBigCal();
+        renderFoot();
       });
     });
-
-    els.bigSummary.textContent = pending.date
-      ? "Sends " + shortDate(parse(pending.date))
-      : "Pick a date to continue";
-    els.schedSave.disabled = !pending.date;
   }
 
-  /* ---- step 2 ---- */
+  /* ---- step 2 · time wheel ---- */
 
-  function renderBigTime() {
-    var d = parse(pending.date);
-    els.chosenDate.textContent =
-      DAY_LONG[d.getDay()] + " " + d.getDate() + " " + MONTH[d.getMonth()];
+  /* Three snap-scrolling columns. The selected value is whichever item sits
+     under the centre band, so scrolling and clicking both work. */
+  var WHEEL_COLS = [
+    { el: "wheelHour",   values: null, get: function () { return pending.hour; },   set: function (v) { pending.hour = v; } },
+    { el: "wheelMinute", values: null, get: function () { return pending.minute; }, set: function (v) { pending.minute = v; } },
+    { el: "wheelPeriod", values: ["AM", "PM"], get: function () { return pending.period; }, set: function (v) { pending.period = v; } }
+  ];
 
-    els.bigTimes.innerHTML = TIME_SLOTS.map(function (t) {
-      return '<button type="button" class="timechip' + (t === pending.time ? " is-on" : "") +
-             '" data-time="' + t + '">' + clockTime(t) + "</button>";
-    }).join("");
-    els.bigTimes.querySelectorAll(".timechip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        pending.time = chip.dataset.time;
-        renderBigTime();
+  WHEEL_COLS[0].values = (function () {
+    var out = []; for (var h = 1; h <= 12; h++) out.push(String(h)); return out;
+  })();
+  WHEEL_COLS[1].values = (function () {
+    var out = []; for (var m = 0; m < 60; m += 5) out.push(m < 10 ? "0" + m : String(m)); return out;
+  })();
+
+  function buildWheels() {
+    WHEEL_COLS.forEach(function (col) {
+      var node = els[col.el];
+      node.innerHTML = col.values.map(function (v) {
+        return '<button type="button" class="wheel__item" data-value="' + v + '">' + v + "</button>";
+      }).join("");
+      node.querySelectorAll(".wheel__item").forEach(function (item, i) {
+        item.addEventListener("click", function () {
+          node.scrollTo({ top: i * ITEM_H, behavior: "smooth" });
+        });
+      });
+      node.addEventListener("scroll", function () {
+        clearTimeout(node._t);
+        node._t = setTimeout(function () { settleWheel(col); }, 90);
       });
     });
-    els.bigTime.value = pending.time;
-
-    els.repeatValue.textContent = repeatText(pending.repeat);
-    els.bigSummary.textContent =
-      "Sends " + shortDate(parse(pending.date)) + ", " + clockTime(pending.time) +
-      (pending.repeat.freq === "none" ? "" : " · " + repeatText(pending.repeat).toLowerCase());
-    els.schedSave.disabled = false;
   }
+
+  function settleWheel(col) {
+    var node = els[col.el];
+    var i = Math.max(0, Math.min(col.values.length - 1, Math.round(node.scrollTop / ITEM_H)));
+    col.set(col.values[i]);
+    markWheel(col);
+    renderFoot();
+  }
+
+  function markWheel(col) {
+    var node = els[col.el];
+    var current = col.get();
+    node.querySelectorAll(".wheel__item").forEach(function (item) {
+      item.classList.toggle("is-on", item.dataset.value === current);
+    });
+  }
+
+  function syncWheels() {
+    WHEEL_COLS.forEach(function (col) {
+      var i = col.values.indexOf(col.get());
+      if (i < 0) i = 0;
+      els[col.el].scrollTop = i * ITEM_H;
+      markWheel(col);
+    });
+  }
+
+  function pendingTime24() {
+    var h = +pending.hour % 12;
+    if (pending.period === "PM") h += 12;
+    return (h < 10 ? "0" + h : String(h)) + ":" + pending.minute;
+  }
+
+  function setPendingFrom24(hhmm) {
+    var p = hhmm.split(":");
+    var h = +p[0];
+    pending.period = h >= 12 ? "PM" : "AM";
+    pending.hour = String(h % 12 === 0 ? 12 : h % 12);
+    var m = Math.round(+p[1] / 5) * 5;
+    pending.minute = m >= 60 ? "55" : (m < 10 ? "0" + m : String(m));
+  }
+
+  /* ---- step machine ---- */
+
+  var STEPS = {
+    date: {
+      heading: "Set your sending date",
+      intro: "Pick the day this campaign goes out. You can change it any time before it sends.",
+      cta: "Continue"
+    },
+    time: {
+      heading: "Pick a time",
+      intro: "Scroll to the hour this should land in your customer's chat.",
+      cta: "Confirm"
+    },
+    summary: {
+      heading: "Ready to schedule",
+      intro: "Check the details, and set it to repeat if this should go out more than once.",
+      cta: "Save"
+    }
+  };
 
   function goToStep(step) {
-    var onDate = step === "date";
-    els.stepDate.hidden = !onDate;
-    els.stepTime.hidden = onDate;
-    els.schedIntro.textContent = onDate
-      ? "Pick the day this campaign goes out. You can change it any time before it sends."
-      : "Choose a time, and whether it should repeat.";
-    if (onDate) renderBigCal(); else renderBigTime();
+    schedStep = step;
+    els.stepDate.hidden = step !== "date";
+    els.stepTime.hidden = step !== "time";
+    els.stepSummary.hidden = step !== "summary";
+
+    els.schedHeading.textContent = STEPS[step].heading;
+    els.schedIntro.textContent = STEPS[step].intro;
+
+    if (step === "date") renderBigCal();
+    if (step === "time") syncWheels();
+    if (step === "summary") renderSummary();
+    renderFoot();
+  }
+
+  function renderSummary() {
+    els.chosenDate.textContent =
+      longDayDate(parse(pending.date)) + ", " + clockTime(pendingTime24());
+    els.repeatValue.textContent = repeatText(pending.repeat);
+  }
+
+  function renderFoot() {
+    els.schedNextBtn.textContent = STEPS[schedStep].cta;
+    els.schedNextBtn.disabled = schedStep === "date" && !pending.date;
+
+    if (schedStep === "date") {
+      els.bigSummary.textContent = pending.date
+        ? shortDate(parse(pending.date))
+        : "Pick a date to continue";
+    } else {
+      els.bigSummary.textContent =
+        "Sends " + shortDate(parse(pending.date)) + ", " + clockTime(pendingTime24()) +
+        (pending.repeat.freq === "none" ? "" : " · " + repeatText(pending.repeat).toLowerCase());
+    }
   }
 
   /* ---- recurrence ---- */
@@ -881,7 +988,6 @@
     els.repeatFreq.querySelectorAll(".timechip").forEach(function (chip) {
       chip.classList.toggle("is-on", chip.dataset.freq === r.freq);
     });
-
     els.repeatDaysWrap.hidden = r.freq !== "weekly";
     els.repeatEndsWrap.hidden = r.freq === "none";
 
@@ -910,21 +1016,18 @@
 
   els.repeatBtn.addEventListener("click", function (e) {
     e.stopPropagation();
-    if (openPop && openPop.pop === els.repeatPop) return hidePop();
-    showPop(els.repeatPop, els.repeatBtn, renderRepeat);
+    if (currentPop() && currentPop().pop === els.repeatPop) return hidePop();
+    showPop(els.repeatPop, els.repeatBtn, renderRepeat, true);   /* nested */
   });
-
   els.repeatFreq.addEventListener("click", function (e) {
     var chip = e.target.closest(".timechip");
     if (!chip) return;
     pending.repeat.freq = chip.dataset.freq;
-    /* a weekly repeat defaults to the day already chosen */
     if (chip.dataset.freq === "weekly" && !pending.repeat.days.length) {
       pending.repeat.days = [(parse(pending.date).getDay() + 6) % 7];
     }
     renderRepeat();
   });
-
   els.repeatEnds.addEventListener("change", function (e) {
     if (e.target.type === "radio") pending.repeat.ends = e.target.value;
     if (e.target === els.endsOn) { pending.repeat.ends = "on"; pending.repeat.endsOn = els.endsOn.value; }
@@ -938,52 +1041,50 @@
   });
   els.repeatDone.addEventListener("click", function () {
     hidePop();
-    renderBigTime();
+    renderSummary();
+    renderFoot();
   });
 
-  /* ---- open / close ---- */
+  /* ---- open, advance, save ---- */
 
-  function openSched() {
+  els.schedBtn.addEventListener("click", function () {
+    if (currentPop() && currentPop().pop === els.schedPop) return hidePop();
     var c = find(state.selectedId);
     if (!c) return;
+
     pending = {
       date: c.date || null,
-      time: c.time || "15:00",
       repeat: c.repeat ? JSON.parse(JSON.stringify(c.repeat)) : blankRepeat()
     };
+    setPendingFrom24(c.time || "15:00");
+
     var base = pending.date ? parse(pending.date) : TODAY;
     state.schedMonth = new Date(base.getFullYear(), base.getMonth(), 1);
 
-    els.schedBackdrop.hidden = false;
-    goToStep(pending.date ? "time" : "date");
-    document.addEventListener("keydown", onSchedKey);
-  }
+    showPop(els.schedPop, els.schedBtn, function () {
+      goToStep(pending.date ? "summary" : "date");
+    });
+  });
 
-  function closeSched() {
+  els.schedNextBtn.addEventListener("click", function () {
+    if (schedStep === "date") return goToStep("time");
+    if (schedStep === "time") return goToStep("summary");
+
+    var c = find(state.selectedId);
+    if (!c || !pending.date) return;
+    c.date = pending.date;
+    c.time = pendingTime24();
+    c.repeat = pending.repeat.freq === "none" ? null : pending.repeat;
+    state.selectedDate = c.date;
+    state.week = weekStart(parse(c.date));
     hidePop();
-    els.schedBackdrop.hidden = true;
-    document.removeEventListener("keydown", onSchedKey);
-  }
-
-  function onSchedKey(e) {
-    if (e.key === "Escape" && !openPop) closeSched();
-  }
-
-  els.schedBtn.addEventListener("click", openSched);
-  els.schedCancel.addEventListener("click", closeSched);
-  els.schedBackdrop.addEventListener("mousedown", function (e) {
-    if (e.target === els.schedBackdrop) closeSched();
+    renderStrip();
+    renderList();
+    renderComposer();
   });
 
+  els.schedCancel.addEventListener("click", hidePop);
   els.backToDate.addEventListener("click", function () { goToStep("date"); });
-
-  els.bigPresets.addEventListener("click", function (e) {
-    var btn = e.target.closest(".preset");
-    if (!btn) return;
-    pending.date = key(addDays(TODAY, +btn.dataset.offset));
-    state.schedMonth = new Date(parse(pending.date).getFullYear(), parse(pending.date).getMonth(), 1);
-    goToStep("time");
-  });
 
   els.bigPrev.addEventListener("click", function () {
     state.schedMonth = new Date(state.schedMonth.getFullYear(), state.schedMonth.getMonth() - 1, 1);
@@ -997,23 +1098,8 @@
     state.schedMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
     renderBigCal();
   });
-  els.bigTime.addEventListener("input", function () {
-    if (els.bigTime.value) { pending.time = els.bigTime.value; renderBigTime(); }
-  });
 
-  els.schedSave.addEventListener("click", function () {
-    var c = find(state.selectedId);
-    if (!c || !pending.date) return;
-    c.date = pending.date;
-    c.time = pending.time;
-    c.repeat = pending.repeat.freq === "none" ? null : pending.repeat;
-    state.selectedDate = c.date;
-    state.week = weekStart(parse(c.date));
-    closeSched();
-    renderStrip();
-    renderList();
-    renderComposer();
-  });
+  buildWheels();
 
   /* ---------------------------------------------------- select contact */
 
@@ -1095,7 +1181,7 @@
   }
 
   els.contactBtn.addEventListener("click", function () {
-    if (openPop && openPop.pop === els.contactPop) return hidePop();
+    if (currentPop() && currentPop().pop === els.contactPop) return hidePop();
     els.pickSearch.value = "";
     showPop(els.contactPop, els.contactBtn, function () {
       renderPick();
