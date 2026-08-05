@@ -298,10 +298,14 @@
                   </button>
                 </div>
               </div>
-              <div class="calgrid__dows" aria-hidden="true">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+              <!-- one scroll container so the labels and the dates share a
+                   width; a scrollbar on the grid alone would offset them -->
+              <div class="calscroll">
+                <div class="calgrid__dows" aria-hidden="true">
+                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="calgrid" id="bigGrid"></div>
               </div>
-              <div class="calgrid" id="bigGrid"></div>
             </section>
 
             <!-- step 2 · time -->

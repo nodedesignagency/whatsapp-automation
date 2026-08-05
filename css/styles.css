@@ -1127,6 +1127,15 @@ svg{ display:block; }
   border-top:1px solid var(--line);
 }
 .schedpop__actions{ display:flex; align-items:center; gap:12px; }
+
+/* At 300px the summary and the buttons cannot share a row without the text
+   wrapping into two cramped lines — on the time step they stack instead. */
+.popover--sched.is-time .schedpop__foot{
+  flex-direction:column;
+  align-items:stretch;
+  gap:10px;
+}
+.popover--sched.is-time .schedpop__actions{ justify-content:flex-end; }
 .popover--sched .btn{ height:34px; }
 
 /* ---- month grid ---- */
@@ -1143,9 +1152,22 @@ svg{ display:block; }
 .calhead__title span{ font-weight:500; color:var(--text-faint); }
 .calhead__nav{ display:flex; align-items:center; gap:2px; }
 
+/* The labels and the dates are two separate grids, so they only line up if
+   they are laid out at the same width. Scrolling the grid alone shortened it
+   by the scrollbar and pushed Sun past the popover edge — the scroll now
+   happens on a wrapper around both, and the label row sticks to its top. */
+.calscroll{
+  max-height:376px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+}
 .calgrid__dows{
+  position:sticky;
+  top:0;
+  z-index:1;
   display:grid;
   grid-template-columns:repeat(7,minmax(0,1fr));
+  background:var(--bg-surface);
   border-bottom:1px solid var(--line);
 }
 .calgrid__dows span{
@@ -1161,9 +1183,6 @@ svg{ display:block; }
 .calgrid{
   display:grid;
   grid-template-columns:repeat(7,minmax(0,1fr));
-  max-height:376px;
-  overflow-y:auto;
-  scrollbar-width:thin;
 }
 /* An explicit column flex is required: a button vertically centres its
    content by default, which floated the number to the middle of any cell

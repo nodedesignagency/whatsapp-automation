@@ -1028,10 +1028,25 @@
   /* Opens beside the schedule popover. Right is the default; it flips left
      when the schedule popover is already close to the viewport edge, which
      it usually is because it is right-aligned to its pill. */
+  var REPEAT_TOP = -12;   /* matches .popover--repeat { top } */
+
   function placeRepeatPop() {
     els.repeatPop.classList.remove("flip-left");
+    els.repeatPop.style.top = "";
+
     var r = els.repeatPop.getBoundingClientRect();
     if (r.right > window.innerWidth - 12) els.repeatPop.classList.add("flip-left");
+
+    /* It must not hang below the schedule popover it belongs to. Choosing a
+       frequency grows it, so this runs on every render, not just on open —
+       a tall card grows upward past the schedule popover's top rather than
+       down past its bottom, stopping at the viewport edge. */
+    var host = els.schedPop.getBoundingClientRect();
+    r = els.repeatPop.getBoundingClientRect();
+
+    var shift = Math.max(0, r.bottom - host.bottom);
+    if (r.top - shift < 12) shift = r.top - 12;
+    if (shift > 0) els.repeatPop.style.top = (REPEAT_TOP - shift) + "px";
   }
 
   function renderRepeat() {
@@ -1064,6 +1079,8 @@
 
     els.repeatSummary.textContent = repeatText(r);
     els.repeatValue.textContent = repeatText(r);
+
+    if (!els.repeatPop.hidden) placeRepeatPop();
   }
 
   els.repeatBtn.addEventListener("click", function (e) {

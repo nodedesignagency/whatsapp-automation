@@ -165,15 +165,20 @@ Continue -> Confirm -> Save.
 
 1. **Date** — a full month grid: 123px cells, the number top-right, and the
    titles of campaigns already booked that day, so you are not scheduling
-   blind. Past days are disabled rather than accepted-then-rejected. The grid
-   scrolls; the header, month bar and footer stay put.
+   blind. Past days are disabled rather than accepted-then-rejected. The
+   weekday labels and the date cells are two separate grids, so they scroll
+   together inside one wrapper — with the scrollbar on the grid alone it was
+   narrower than the label row and the columns drifted apart. The labels stay
+   put via `position: sticky`; the header, month bar and footer sit outside
+   the scroll area.
 2. **Time** — three wheels (hour, minute in 5s, AM/PM) with the selection under
    a centre band and the neighbours faded out. Three ways to change it: scroll,
    click an item to bring it to centre, or drag with the mouse. Dragging is
    mouse-only — touch and trackpads already scroll these natively and
    intercepting that fights the browser. A drag that ends over an item does not
    count as a click on it. The popover narrows to 300px for this step, since a
-   wheel needs far less room than a calendar.
+   wheel needs far less room than a calendar — and at that width the footer
+   stacks, with the "Sends …" line on its own row above the buttons.
 3. **Confirm** — the chosen date and time with a Change link back to step 1,
    plus the repeat row.
 
@@ -181,7 +186,10 @@ Edits are held in a `pending` object and only written on Save, so Cancel
 genuinely cancels.
 
 **Repeat** opens beside the schedule popover rather than over it — right by
-default, flipping left when that would run past the viewport edge. It offers
+default, flipping left when that would run past the viewport edge. It never
+hangs below the schedule popover's bottom edge: picking Weekly makes it taller
+than its host, so it is clamped bottom-aligned and grows upward instead, which
+is measured on every render because the frequency changes its height.  It offers
 how often (Once / Daily / Weekly / Monthly),
 which days when weekly, and until when (I stop it / a date / after N sends).
 It reads back in plain words — "Every week on Thu, Fri, 4 times".
