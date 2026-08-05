@@ -144,7 +144,7 @@
       </div>
 
       <button class="new-draft" type="button">
-        <span>Create New Draft</span>
+        <span>Create New Message</span>
         <span class="new-draft__plus" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </span>
@@ -170,6 +170,23 @@
              aria-label="Campaign title" data-placeholder="Campaign Title"></div>
         <div class="composer__editor" contenteditable="true" role="textbox" aria-multiline="true"
              data-placeholder="Start writing you message"></div>
+      </div>
+
+      <!-- shown whenever nothing is selected, so the composer is never
+           holding a message the user did not ask to open -->
+      <div class="composer__empty" id="composerEmpty" hidden>
+        <span class="composer__empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5v-7Z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M8.5 8.5h7M8.5 11.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h3 class="composer__empty-title">No message open</h3>
+        <p class="composer__empty-body">
+          Pick a message from the list to read or edit it, or start a new one.
+        </p>
+        <button class="btn btn--primary" type="button" id="emptyNewBtn">Create New Message</button>
       </div>
 
       <!-- phone preview -->
@@ -458,7 +475,7 @@
     <div class="modal__content">
     <h2 class="modal__title" id="saveTitle">Save this as a draft?</h2>
     <p class="modal__body" id="saveBody">
-      This campaign has not been scheduled yet. Save it and you can finish it later
+      This message has not been scheduled yet. Save it and you can finish it later
       from the Draft tab.
     </p>
     <div class="modal__actions">

@@ -734,6 +734,32 @@ svg{ display:block; }
 
 .composer__body{ grid-column:1; grid-row:1; min-width:0; padding-top:6px; }
 
+/* Nothing selected: the composer has no message to hold, so it says so
+   instead of presenting an editable blank that looks like a new one. */
+.composer.is-empty > :not(.composer__empty){ display:none; }
+.composer__empty{
+  grid-column:1 / -1;
+  grid-row:1 / -1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+  color:var(--text-faint);
+}
+.composer__empty[hidden]{ display:none; }
+.composer__empty-icon{ width:34px; height:34px; color:var(--line-strong); }
+.composer__empty-icon svg{ width:100%; height:100%; }
+.composer__empty-title{
+  margin:2px 0 0;
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.composer__empty-body{ margin:0; font-size:13.5px; max-width:34ch; line-height:1.55; }
+.composer__empty .btn--primary{ margin-top:6px; padding:0 16px; }
+
 /* contenteditable rather than an input: a long campaign title has to wrap
    onto a second line, and an input can only ever clip or ellipsise. */
 .composer__title{
@@ -975,6 +1001,10 @@ svg{ display:block; }
   box-shadow:var(--sh-md);
 }
 .btn--primary:hover{ filter:brightness(1.12); }
+
+/* Confirm stays dead until the draft can actually be sent. */
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+.btn:disabled:hover{ filter:none; color:inherit; }
 
 /* ----------------------------------------------------------- popovers */
 .pop-anchor{ position:relative; display:inline-flex; }

@@ -174,7 +174,7 @@
     selectedDate: key(TODAY),
     status: "scheduled",
     query: "",
-    selectedId: "c2",
+    selectedId: null,
     popMonth: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1),
     pickTab: "all",
     stripDays: 7
@@ -198,6 +198,9 @@
     saveBackdrop: $("#saveBackdrop"),
     discardBtn: $("#discardBtn"),
     saveDraftBtn: $("#saveDraftBtn"),
+    composer: $(".composer"),
+    composerEmpty: $("#composerEmpty"),
+    emptyNewBtn: $("#emptyNewBtn"),
     strip: $("#datestrip"),
     prev: $("#prevWeek"),
     next: $("#nextWeek"),
@@ -564,7 +567,7 @@
              '<p class="dayempty__text">Nothing ' +
                (went ? "went out" : "scheduled") + " on this day</p>" +
              (isPast(iso) ? "" : '<button class="dayempty__add" type="button" data-add="' +
-                                 iso + '">+ Add campaign</button>') +
+                                 iso + '">+ Schedule message</button>') +
              hint +
            "</div>";
   }
@@ -666,9 +669,31 @@
     return null;
   }
 
+  /* Confirm is the moment a draft becomes a real send, so it stays disabled
+     until the three things a send cannot happen without are all present. */
+  function isComplete(c) {
+    return !!c && c.message.trim() !== "" && !!c.date && !!c.time &&
+           recipientCount(c) > 0;
+  }
+
+  function syncConfirm() {
+    var c = find(state.selectedId);
+    els.confirmBtn.disabled = !!c && c.status === "draft" && !isComplete(c);
+  }
+
   function renderComposer() {
     var c = find(state.selectedId);
-    if (!c) return;
+
+    els.composer.classList.toggle("is-empty", !c);
+    els.composerEmpty.hidden = !!c;
+    if (!c) {
+      els.title.textContent = "";
+      els.editor.textContent = "";
+      renderLiveBubble();
+      return;
+    }
+
+    els.confirmBtn.disabled = c.status === "draft" && !isComplete(c);
 
     els.title.textContent = c.title;
     els.editor.textContent = c.message;   /* :empty shows the placeholder */
@@ -766,26 +791,41 @@
   els.next.addEventListener("click", function () { shiftWeek(1); });
 
   var segTrack = document.getElementById("segTrack");
+  var TAB_INDEX = {};
+
+  /* The switch itself, with no questions asked — every internal caller
+     (confirm, discard, save) has already decided the move is safe. */
+  function applyTab(status) {
+    var target = document.querySelector('.segmented__item[data-status="' + status + '"]');
+    if (!target) return;
+
+    segTrack.style.setProperty("--i", TAB_INDEX[status]);
+    document.querySelectorAll(".segmented__item").forEach(function (item) {
+      var on = item === target;
+      item.classList.toggle("is-active", on);
+      item.setAttribute("aria-selected", on ? "true" : "false");
+    });
+
+    state.status = status;
+
+    /* Nothing is opened on arrival. A message the user did not ask for is a
+       message they can edit by accident. */
+    if (!visible().some(function (c) { return c.id === state.selectedId; })) {
+      state.selectedId = null;
+    }
+
+    renderStrip();
+    renderList();
+    renderComposer();
+  }
 
   document.querySelectorAll(".segmented__item").forEach(function (tab, index) {
+    TAB_INDEX[tab.dataset.status] = index;
     tab.addEventListener("click", function () {
-      segTrack.style.setProperty("--i", index);
-      document.querySelectorAll(".segmented__item").forEach(function (other) {
-        other.classList.remove("is-active");
-        other.setAttribute("aria-selected", "false");
-      });
-      tab.classList.add("is-active");
-      tab.setAttribute("aria-selected", "true");
-
-      state.status = tab.dataset.status;
-      renderStrip();
-      renderList();
-
-      var stillThere = visible().some(function (c) { return c.id === state.selectedId; });
-      if (!stillThere) {
-        var first = visible()[0];
-        if (first) selectCampaign(first.id);
-      }
+      var status = tab.dataset.status;
+      if (status === state.status) return;
+      if (guardUnsaved(status)) return;   /* the prompt finishes the switch */
+      applyTab(status);
     });
   });
 
@@ -809,8 +849,7 @@
     };
     CAMPAIGNS.push(draft);
 
-    var tab = document.querySelector('.segmented__item[data-status="draft"]');
-    if (tab) tab.click();          /* switches status and slides the highlight */
+    applyTab("draft");             /* switches status and slides the highlight */
 
     state.selectedId = draft.id;
     renderStrip();
@@ -820,6 +859,7 @@
   }
 
   els.newDraft.addEventListener("click", function () { createDraft(null); });
+  els.emptyNewBtn.addEventListener("click", function () { createDraft(null); });
 
   els.search.addEventListener("input", function () {
     state.query = els.search.value;
@@ -838,6 +878,7 @@
       }
     }
     renderLiveBubble();
+    syncConfirm();
   });
 
   els.title.addEventListener("input", function () {
@@ -846,6 +887,7 @@
     c.title = els.title.textContent;
     var card = els.list.querySelector('.campaign[data-id="' + c.id + '"] .campaign__title');
     if (card) card.textContent = c.title || "Untitled campaign";
+    syncConfirm();
   });
 
   document.querySelectorAll(".nav-item").forEach(function (item) {
@@ -858,10 +900,7 @@
 
   /* --------------------------------------------- confirm and cancel */
 
-  function goToTab(status) {
-    var tab = document.querySelector('.segmented__item[data-status="' + status + '"]');
-    if (tab) tab.click();
-  }
+  function goToTab(status) { applyTab(status); }
 
   /* Confirming a draft is what schedules it — that is the only way a
      campaign leaves the Draft tab. It takes the date currently selected in
@@ -870,18 +909,34 @@
     var c = find(state.selectedId);
     if (!c || c.status !== "draft") return;
 
+    if (!isComplete(c)) return;
+
     c.status = "scheduled";
-    c.date = state.selectedDate;
-    c.time = c.time || "12:00";
     if (!c.title) c.title = "Untitled campaign";
 
+    state.selectedDate = c.date;
     goToTab("scheduled");
     selectCampaign(c.id);
   });
 
-  /* Cancelling a draft that has been typed into asks before throwing it away. */
+  /* Work in progress: anything the user put into the composer themselves.
+     The pre-filled date from an empty day is deliberately not counted — it
+     was the app's suggestion, not their effort. */
   function hasContent(c) {
-    return !!c && (c.title.trim() !== "" || c.message.trim() !== "");
+    return !!c && (c.title.trim() !== "" || c.message.trim() !== "" ||
+                   recipientCount(c) > 0);
+  }
+
+  /* Leaving the Draft tab mid-write would strand the message, so the prompt
+     comes first and the tab change waits for the answer. */
+  var pendingTab = null;
+
+  function guardUnsaved(status) {
+    var c = find(state.selectedId);
+    if (!c || c.status !== "draft" || !hasContent(c)) return false;
+    pendingTab = status;
+    openSavePrompt();
+    return true;
   }
 
   function openSavePrompt() {
@@ -893,6 +948,7 @@
   function closeSavePrompt() {
     els.saveBackdrop.hidden = true;
     document.removeEventListener("keydown", onModalKey);
+    pendingTab = null;             /* dismissing the prompt cancels the move */
   }
 
   function onModalKey(e) {
@@ -909,21 +965,27 @@
   });
 
   els.saveDraftBtn.addEventListener("click", function () {
+    var id = state.selectedId;
+    var next = pendingTab;
     closeSavePrompt();
-    goToTab("draft");
-    selectCampaign(state.selectedId);
+
+    /* The draft is already in CAMPAIGNS, so saving is just letting it be. */
+    if (next) {
+      applyTab(next);
+    } else {
+      applyTab("draft");
+      selectCampaign(id);
+    }
   });
 
   els.discardBtn.addEventListener("click", function () {
     var i = CAMPAIGNS.indexOf(find(state.selectedId));
     if (i > -1) CAMPAIGNS.splice(i, 1);
-    closeSavePrompt();
+    state.selectedId = null;
 
-    renderStrip();
-    renderList();
-    var first = visible()[0];
-    if (first) selectCampaign(first.id);
-    else { els.title.textContent = ""; els.editor.textContent = ""; renderLiveBubble(); }
+    var next = pendingTab;
+    closeSavePrompt();
+    applyTab(next || state.status);
   });
 
   /* ------------------------------------------------- popover plumbing */
