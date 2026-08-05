@@ -258,6 +258,31 @@
 
   function isPast(iso) { return parse(iso) < TODAY; }
 
+  /* The tabs hold different halves of the calendar — scheduled ahead of
+     today, sent behind it — so carrying a date across a switch usually lands
+     on a week that tab has nothing in. The date moves to the nearest day the
+     tab actually holds, preferring the direction that tab lives in: forward
+     for anything still to go out, backward for anything already gone. */
+  function nearestDateFor(status, iso) {
+    var dates = [];
+    CAMPAIGNS.forEach(function (c) {
+      if (c.status === status && c.date && dates.indexOf(c.date) < 0) dates.push(c.date);
+    });
+    if (!dates.length || dates.indexOf(iso) > -1) return null;
+
+    var from = parse(iso);
+    var wanted = status === "sent" ? -1 : 1;
+
+    var best = null, bestGap = Infinity, bestFallback = null, fallbackGap = Infinity;
+    dates.forEach(function (d) {
+      var gap = (parse(d) - from) / 86400000;
+      var abs = Math.abs(gap);
+      if (gap * wanted >= 0 && abs < bestGap) { best = d; bestGap = abs; }
+      if (abs < fallbackGap) { bestFallback = d; fallbackGap = abs; }
+    });
+    return best || bestFallback;
+  }
+
   /* Today and the future are always open, because you can still schedule
      into them. A past day is only worth opening if something happened on
      it — an empty past day has nothing to show and nothing to add. */
@@ -807,6 +832,15 @@
     });
 
     state.status = status;
+
+    /* Drafts carry no date, so there is nothing to follow there. */
+    if (status !== "draft") {
+      var moved = nearestDateFor(status, state.selectedDate);
+      if (moved) {
+        state.selectedDate = moved;
+        state.week = weekStart(parse(moved));
+      }
+    }
 
     /* Nothing is opened on arrival. A message the user did not ask for is a
        message they can edit by accident. */
