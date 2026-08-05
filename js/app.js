@@ -41,6 +41,24 @@
     { id: "p7", name: "Meera Iyer",     phone: "+91 96500 22107" }
   ];
 
+  /* WhatsApp groups the vendor is already a member of. Sending to a group is
+     one message to everyone in it, so the count is members, not recipients
+     the vendor curated. */
+  var GROUPS = [
+    { id: "g1", name: "Boutique VIP Club",     count: 96 },
+    { id: "g2", name: "Wholesale Buyers",      count: 48 },
+    { id: "g3", name: "Festive Orders 2026",   count: 132 },
+    { id: "g4", name: "Tailoring Requests",    count: 27 }
+  ];
+
+  /* Channels are broadcast-only, so they carry followers rather than members
+     and nobody can reply into them. */
+  var CHANNELS = [
+    { id: "ch1", name: "Store Updates",        count: 1240 },
+    { id: "ch2", name: "Daily Deals",          count: 863 },
+    { id: "ch3", name: "New Arrivals",         count: 512 }
+  ];
+
   var AVATARS = [
     "assets/avatar-1.svg", "assets/avatar-2.svg", "assets/avatar-3.svg",
     "assets/avatar-4.svg", "assets/avatar-5.svg"
@@ -99,6 +117,13 @@
     }
   ];
 
+  /* Groups and channels arrived after the seed data was written, so every
+     campaign gets the two arrays here rather than in eight literals. */
+  CAMPAIGNS.forEach(function (c) {
+    c.groups = c.groups || [];
+    c.channels = c.channels || [];
+  });
+
   /* --------------------------------------------------------- date utils */
 
   var DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -150,7 +175,8 @@
     status: "scheduled",
     query: "",
     selectedId: "c2",
-    popMonth: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
+    popMonth: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1),
+    pickTab: "all"
   };
 
   /* ------------------------------------------------------------ lookup */
@@ -201,6 +227,7 @@
 
     contactBtn: $("#contactBtn"), contactPop: $("#contactPop"), contactLabel: $("#contactLabel"),
     pickSearch: $("#pickSearch"), pickList: $("#pickList"),
+    pickTabs: $("#pickTabs"),
     pickSummary: $("#pickSummary"), pickDone: $("#pickDone")
   };
 
@@ -227,25 +254,48 @@
     for (var i = 0; i < CONTACTS.length; i++) if (CONTACTS[i].id === id) return CONTACTS[i];
     return null;
   }
+  function byId(source, id) {
+    for (var i = 0; i < source.length; i++) if (source[i].id === id) return source[i];
+    return null;
+  }
+  function groupById(id) { return byId(GROUPS, id); }
+  function channelById(id) { return byId(CHANNELS, id); }
+
+  /* A group's members and a channel's followers both count as reach, so they
+     add to the head count the same way a saved list does. */
+  function countFrom(ids, lookup) {
+    return ids.reduce(function (n, id) {
+      var item = lookup(id);
+      return n + (item ? item.count : 0);
+    }, 0);
+  }
 
   function recipientCount(c) {
     if (!c) return 0;
-    return c.lists.reduce(function (n, id) {
-      var l = listById(id);
-      return n + (l ? l.count : 0);
-    }, 0) + c.contacts.length;
+    return countFrom(c.lists, listById) +
+           countFrom(c.groups, groupById) +
+           countFrom(c.channels, channelById) +
+           c.contacts.length;
   }
 
   /* One list reads as its own name; anything else is counted, because
      "Regular Buyers + 2 others" is more useful than a truncated list. */
   function audienceLabel(c) {
     if (!c) return "No audience yet";
-    var L = c.lists.length, K = c.contacts.length;
-    if (!L && !K) return "No audience yet";
-    if (L === 1 && !K) return listById(c.lists[0]).name;
-    if (!L && K === 1) return personById(c.contacts[0]).name;
+    var L = c.lists.length, K = c.contacts.length,
+        G = c.groups.length, H = c.channels.length;
+    var picked = L + K + G + H;
+    if (!picked) return "No audience yet";
+    if (picked === 1) {
+      if (L) return listById(c.lists[0]).name;
+      if (K) return personById(c.contacts[0]).name;
+      if (G) return groupById(c.groups[0]).name;
+      return channelById(c.channels[0]).name;
+    }
     var parts = [];
     if (L) parts.push(L + (L > 1 ? " lists" : " list"));
+    if (G) parts.push(G + (G > 1 ? " groups" : " group"));
+    if (H) parts.push(H + (H > 1 ? " channels" : " channel"));
     if (K) parts.push(K + (K > 1 ? " contacts" : " contact"));
     return parts.join(" + ");
   }
@@ -597,7 +647,9 @@
       title: "",
       message: "",
       lists: [],
-      contacts: []
+      contacts: [],
+      groups: [],
+      channels: []
     };
     CAMPAIGNS.push(draft);
 
@@ -1181,49 +1233,72 @@
     return name.split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join("").toUpperCase();
   }
 
+  /* Each row type knows where its selection lives and how its subtitle
+     reads, so the tabs are a filter over one renderer rather than four. */
+  var PICK_SECTIONS = [
+    {
+      tab: "contacts", kind: "list", title: "Lists", source: function () { return AUDIENCES; },
+      field: "lists", avatar: function (l) { return l.count; },
+      sub: function (l) { return l.count + " people"; }
+    },
+    {
+      tab: "groups", kind: "group", title: "Groups", source: function () { return GROUPS; },
+      field: "groups", avatar: function (g) { return initials(g.name); },
+      sub: function (g) { return g.count + " members"; }
+    },
+    {
+      tab: "channels", kind: "channel", title: "Channels", source: function () { return CHANNELS; },
+      field: "channels", avatar: function (ch) { return initials(ch.name); },
+      sub: function (ch) { return ch.count.toLocaleString() + " followers"; }
+    },
+    {
+      tab: "contacts", kind: "person", title: "People", source: function () { return CONTACTS; },
+      field: "contacts", avatar: function (p) { return initials(p.name); },
+      sub: function (p) { return p.phone; }
+    }
+  ];
+
+  function sectionByKind(kind) {
+    for (var i = 0; i < PICK_SECTIONS.length; i++) {
+      if (PICK_SECTIONS[i].kind === kind) return PICK_SECTIONS[i];
+    }
+    return null;
+  }
+
   function renderPick() {
     var c = find(state.selectedId);
     if (!c) return;
     var q = els.pickSearch.value.trim().toLowerCase();
 
-    var lists = AUDIENCES.filter(function (l) { return !q || l.name.toLowerCase().indexOf(q) > -1; });
-    var people = CONTACTS.filter(function (p) {
-      return !q || p.name.toLowerCase().indexOf(q) > -1 || p.phone.indexOf(q) > -1;
+    var html = "";
+    PICK_SECTIONS.forEach(function (sec) {
+      if (state.pickTab !== "all" && state.pickTab !== sec.tab) return;
+
+      var rows = sec.source().filter(function (item) {
+        return !q || item.name.toLowerCase().indexOf(q) > -1 ||
+               (item.phone && item.phone.indexOf(q) > -1);
+      });
+      if (!rows.length) return;
+
+      html += '<p class="picksection">' + sec.title + "</p>";
+      rows.forEach(function (item) {
+        var on = c[sec.field].indexOf(item.id) > -1;
+        html += '<button type="button" class="pickrow' + (on ? " is-on" : "") +
+                '" data-kind="' + sec.kind + '" data-id="' + item.id + '">' +
+                  '<span class="pickrow__avatar">' + sec.avatar(item) + "</span>" +
+                  '<span class="pickrow__meta">' +
+                    '<span class="pickrow__name">' + item.name + "</span>" +
+                    '<span class="pickrow__sub">' + sec.sub(item) + "</span>" +
+                  "</span>" +
+                  '<span class="pickrow__check">' + CHECK + "</span>" +
+                "</button>";
+      });
     });
 
-    var html = "";
-    if (lists.length) {
-      html += '<p class="picksection">Lists</p>';
-      lists.forEach(function (l) {
-        var on = c.lists.indexOf(l.id) > -1;
-        html += '<button type="button" class="pickrow' + (on ? " is-on" : "") +
-                '" data-kind="list" data-id="' + l.id + '">' +
-                  '<span class="pickrow__avatar">' + l.count + "</span>" +
-                  '<span class="pickrow__meta">' +
-                    '<span class="pickrow__name">' + l.name + "</span>" +
-                    '<span class="pickrow__sub">' + l.count + " people</span>" +
-                  "</span>" +
-                  '<span class="pickrow__check">' + CHECK + "</span>" +
-                "</button>";
-      });
-    }
-    if (people.length) {
-      html += '<p class="picksection">People</p>';
-      people.forEach(function (pp) {
-        var on = c.contacts.indexOf(pp.id) > -1;
-        html += '<button type="button" class="pickrow' + (on ? " is-on" : "") +
-                '" data-kind="person" data-id="' + pp.id + '">' +
-                  '<span class="pickrow__avatar">' + initials(pp.name) + "</span>" +
-                  '<span class="pickrow__meta">' +
-                    '<span class="pickrow__name">' + pp.name + "</span>" +
-                    '<span class="pickrow__sub">' + pp.phone + "</span>" +
-                  "</span>" +
-                  '<span class="pickrow__check">' + CHECK + "</span>" +
-                "</button>";
-      });
-    }
-    if (!lists.length && !people.length) {
-      html = '<p class="pickempty">Nothing matches “' + els.pickSearch.value + '”</p>';
+    if (!html) {
+      html = q
+        ? '<p class="pickempty">Nothing matches “' + els.pickSearch.value + '”</p>'
+        : '<p class="pickempty">Nothing here yet</p>';
     }
 
     els.pickList.innerHTML = html;
@@ -1241,7 +1316,9 @@
   function togglePick(kind, id) {
     var c = find(state.selectedId);
     if (!c) return;
-    var arr = kind === "list" ? c.lists : c.contacts;
+    var sec = sectionByKind(kind);
+    if (!sec) return;
+    var arr = c[sec.field];
     var i = arr.indexOf(id);
     if (i > -1) arr.splice(i, 1); else arr.push(id);
 
@@ -1255,11 +1332,29 @@
   els.contactBtn.addEventListener("click", function () {
     if (currentPop() && currentPop().pop === els.contactPop) return hidePop();
     els.pickSearch.value = "";
+    setPickTab("all");
     showPop(els.contactPop, els.contactBtn, function () {
       renderPick();
       els.pickSearch.focus();
     });
   });
+  function setPickTab(tab) {
+    state.pickTab = tab;
+    els.pickTabs.querySelectorAll(".picktab").forEach(function (btn) {
+      var on = btn.dataset.tab === tab;
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+
+  els.pickTabs.querySelectorAll(".picktab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      setPickTab(btn.dataset.tab);
+      els.pickList.scrollTop = 0;
+      renderPick();
+    });
+  });
+
   els.pickSearch.addEventListener("input", renderPick);
   els.pickDone.addEventListener("click", hidePop);
 

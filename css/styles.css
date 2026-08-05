@@ -1018,11 +1018,52 @@ svg{ display:block; }
 }
 
 /* keep the picker inside the workspace — its button sits at the right edge */
-.popover--contacts{ left:auto; right:0; }
+.popover--contacts{ left:auto; right:0; width:340px; }
 
 /* ---- contacts ---- */
 .search--sm{ height:36px; padding:0 10px; }
 .search--sm input{ font-size:13px; }
+
+/* The four filters do not fit the popover width, so the row scrolls the way
+   WhatsApp's own does. The fade on the right edge is the only affordance. */
+.picktabs{
+  display:flex;
+  gap:6px;
+  margin:10px -14px 0;
+  padding:2px 14px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  -webkit-mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+          mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+}
+.picktabs::-webkit-scrollbar{ display:none; }
+.picktab{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex:0 0 auto;
+  height:30px;
+  padding:0 11px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--r-pill);
+  background:var(--bg-surface);
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--text-body);
+  white-space:nowrap;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.picktab:hover{ background:var(--bg-subtle); color:var(--text-strong); }
+.picktab__icon{ display:grid; place-items:center; }
+.picktab__icon svg{ width:14px; height:14px; }
+.picktab.is-on{
+  background:var(--dark);
+  border-color:var(--dark);
+  color:#fff;
+  font-weight:600;
+}
+.picktab.is-on:hover{ background:var(--dark); color:#fff; }
 
 .picklist{
   max-height:236px;

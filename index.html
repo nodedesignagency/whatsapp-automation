@@ -398,8 +398,35 @@
               <span class="search__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
               </span>
-              <input type="search" id="pickSearch" placeholder="Search lists or people" aria-label="Search lists or people" />
+              <input type="search" id="pickSearch" placeholder="Search lists, groups or people" aria-label="Search lists, groups or people" />
             </label>
+
+            <div class="picktabs" id="pickTabs" role="tablist" aria-label="Filter recipients">
+              <button class="picktab is-on" type="button" role="tab" aria-selected="true" data-tab="all">
+                <span class="picktab__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6.5" height="6.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
+                </span>
+                <span class="picktab__label">All</span>
+              </button>
+              <button class="picktab" type="button" role="tab" aria-selected="false" data-tab="contacts">
+                <span class="picktab__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.5c.8-3.3 3.6-5.1 7-5.1s6.2 1.8 7 5.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <span class="picktab__label">Contacts</span>
+              </button>
+              <button class="picktab" type="button" role="tab" aria-selected="false" data-tab="groups">
+                <span class="picktab__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="9.5" cy="8.5" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.7-2.9 3.1-4.5 6-4.5s5.3 1.6 6 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 6.1a3.2 3.2 0 0 1 0 6.1M17.6 15a5.6 5.6 0 0 1 3.4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <span class="picktab__label">Groups</span>
+              </button>
+              <button class="picktab" type="button" role="tab" aria-selected="false" data-tab="channels">
+                <span class="picktab__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5a2 2 0 0 1 2-2h2.2l6.6-3.9a1 1 0 0 1 1.5.9v13a1 1 0 0 1-1.5.9L8.2 15.5H6a2 2 0 0 1-2-2v-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 15.5V19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <span class="picktab__label">Channels</span>
+              </button>
+            </div>
 
             <div class="picklist" id="pickList"></div>
 
