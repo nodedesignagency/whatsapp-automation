@@ -175,6 +175,30 @@
       <!-- shown whenever nothing is selected, so the composer is never
            holding a message the user did not ask to open -->
       <div class="composer__empty" id="composerEmpty" hidden>
+
+        <!-- An unwritten thread: two bubbles that have already been said,
+             receding, and the one you have not written yet waiting in front.
+             Swap the wrapper class for composer__empty--plain to fall back to
+             the icon-and-text version. -->
+        <div class="unwritten" aria-hidden="true">
+          <span class="unwritten__bub unwritten__bub--in">
+            <i></i><i></i>
+          </span>
+          <span class="unwritten__bub unwritten__bub--out">
+            <i></i><i></i>
+          </span>
+          <span class="unwritten__bub unwritten__bub--draft">
+            <span class="unwritten__caret"></span>
+          </span>
+        </div>
+
+        <h3 class="composer__empty-title">Your next message starts here</h3>
+        <p class="composer__empty-body">
+          Pick one from the list to read or edit it, or start a new one.
+        </p>
+        <button class="btn btn--primary" type="button" id="emptyNewBtn">Create New Message</button>
+
+        <!-- kept for the plain variant -->
         <span class="composer__empty-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5v-7Z"
@@ -182,11 +206,6 @@
             <path d="M8.5 8.5h7M8.5 11.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
         </span>
-        <h3 class="composer__empty-title">No message open</h3>
-        <p class="composer__empty-body">
-          Pick a message from the list to read or edit it, or start a new one.
-        </p>
-        <button class="btn btn--primary" type="button" id="emptyNewBtn">Create New Message</button>
       </div>
 
       <!-- phone preview -->

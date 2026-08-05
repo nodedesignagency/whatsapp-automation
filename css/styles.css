@@ -749,16 +749,106 @@ svg{ display:block; }
   color:var(--text-faint);
 }
 .composer__empty[hidden]{ display:none; }
-.composer__empty-icon{ width:34px; height:34px; color:var(--line-strong); }
-.composer__empty-icon svg{ width:100%; height:100%; }
 .composer__empty-title{
-  margin:2px 0 0;
-  font-size:16px;
+  margin:18px 0 0;
+  font-size:17px;
   font-weight:600;
+  letter-spacing:-.01em;
   color:var(--text-strong);
 }
 .composer__empty-body{ margin:0; font-size:13.5px; max-width:34ch; line-height:1.55; }
-.composer__empty .btn--primary{ margin-top:6px; padding:0 16px; }
+.composer__empty .btn--primary{ margin-top:8px; padding:0 16px; }
+
+/* ---- the unwritten thread ----
+   The empty composer shows the thing it is about to make: two bubbles that
+   have already been said, receding into the page, and the one still to be
+   written waiting in front with the caret already blinking in it. Bubble
+   geometry and radii are the preview's own, so it reads as this product's
+   chat and not as generic placeholder furniture. */
+.unwritten{
+  position:relative;
+  width:236px;
+  height:132px;
+  isolation:isolate;
+}
+.unwritten__bub{
+  position:absolute;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:6px;
+  padding:11px 13px;
+  border-radius:14px;
+}
+.unwritten__bub i{
+  display:block;
+  height:6px;
+  border-radius:3px;
+  background:currentColor;
+  opacity:.22;
+}
+
+/* said, and receding: further back means smaller, softer, blurred */
+.unwritten__bub--in{
+  top:0; left:6px;
+  width:132px;
+  border-bottom-left-radius:5px;
+  background:var(--bg-surface);
+  color:var(--text-body);
+  box-shadow:0 0 0 1px var(--line), var(--sh-sm);
+  opacity:.5;
+  filter:blur(1.4px);
+  transform:scale(.94);
+}
+.unwritten__bub--in i:last-child{ width:64%; }
+
+.unwritten__bub--out{
+  top:38px; right:0;
+  width:150px;
+  border-bottom-right-radius:5px;
+  background:var(--brand-soft);
+  color:var(--brand);
+  box-shadow:0 0 0 1px rgba(56,174,106,.14);
+  opacity:.62;
+  filter:blur(.7px);
+  transform:scale(.97);
+}
+.unwritten__bub--out i:last-child{ width:52%; }
+
+/* not said yet: crisp, in front, and open */
+.unwritten__bub--draft{
+  bottom:0; right:14px;
+  width:168px;
+  height:44px;
+  border-bottom-right-radius:5px;
+  background:var(--bg-surface);
+  box-shadow:0 0 0 1px var(--line), var(--sh-md);
+  align-items:flex-start;
+  justify-content:center;
+}
+.unwritten__caret{
+  width:2px;
+  height:17px;
+  margin-left:2px;
+  border-radius:1px;
+  background:var(--brand);
+  animation:caret-blink 1.15s steps(1, end) infinite;
+}
+@keyframes caret-blink{ 0%,55%{ opacity:1; } 56%,100%{ opacity:0; } }
+@media (prefers-reduced-motion: reduce){
+  .unwritten__caret{ animation:none; }
+}
+
+/* the icon-only version this replaced, kept one class away */
+.composer__empty-icon{ display:none; }
+.composer__empty--plain .unwritten{ display:none; }
+.composer__empty--plain .composer__empty-icon{
+  display:block;
+  width:34px; height:34px;
+  color:var(--line-strong);
+}
+.composer__empty--plain .composer__empty-icon svg{ width:100%; height:100%; }
+.composer__empty--plain .composer__empty-title{ margin-top:2px; font-size:16px; }
 
 /* contenteditable rather than an input: a long campaign title has to wrap
    onto a second line, and an input can only ever clip or ellipsise. */
