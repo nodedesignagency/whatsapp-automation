@@ -176,7 +176,8 @@
     query: "",
     selectedId: "c2",
     popMonth: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1),
-    pickTab: "all"
+    pickTab: "all",
+    stripDays: 7
   };
 
   /* ------------------------------------------------------------ lookup */
@@ -302,9 +303,38 @@
 
   /* ------------------------------------------------------------- views */
 
+  /* The pills flex between these two widths; below --dpill-min the gap would
+     have to drop under 4px, so the strip drops a day instead. Both numbers
+     mirror .datestrip__list in the stylesheet. */
+  var DPILL_MIN = 34, DPILL_GAP = 4;
+
+  function daysThatFit() {
+    var w = els.strip.clientWidth;
+    if (!w) return 7;                       /* pre-layout: assume the full week */
+    var n = Math.floor((w + DPILL_GAP) / (DPILL_MIN + DPILL_GAP));
+    return Math.max(1, Math.min(7, n));
+  }
+
+  /* When the whole week does not fit, the visible days are a window onto it
+     kept centred on the selected day, so paging by week still reaches every
+     date rather than stranding the ones past the edge. */
+  function stripOffset(n) {
+    if (n >= 7) return 0;
+    var sel = -1;
+    for (var i = 0; i < 7; i++) {
+      if (key(addDays(state.week, i)) === state.selectedDate) sel = i;
+    }
+    if (sel < 0) return 0;
+    return Math.max(0, Math.min(7 - n, sel - Math.floor((n - 1) / 2)));
+  }
+
   function renderStrip() {
-    var start = state.week;
-    var end = addDays(start, 6);
+    var count = daysThatFit();
+    var offset = stripOffset(count);
+    state.stripDays = count;
+
+    var start = addDays(state.week, offset);
+    var end = addDays(start, count - 1);
 
     els.month.textContent = start.getMonth() === end.getMonth()
       ? MONTH[start.getMonth()] + " " + start.getFullYear()
@@ -312,7 +342,7 @@
 
     els.strip.innerHTML = "";
 
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < count; i++) {
       var day = addDays(start, i);
       var iso = key(day);
 
@@ -606,6 +636,14 @@
     state.week = addDays(state.week, delta * 7);
     renderStrip();
     renderList();
+  }
+
+  /* A narrower panel fits fewer days; re-render only when the count actually
+     changes, so a resize does not thrash the strip. */
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () {
+      if (daysThatFit() !== state.stripDays) renderStrip();
+    }).observe(els.strip);
   }
 
   els.prev.addEventListener("click", function () { shiftWeek(-1); });

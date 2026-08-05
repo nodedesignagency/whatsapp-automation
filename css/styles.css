@@ -342,13 +342,24 @@ svg{ display:block; }
 .datestrip__arrow:hover{ background:var(--bg-hover); color:var(--text-strong); }
 .datestrip__arrow svg{ width:18px; height:18px; }
 
+/* 4px is the floor for the gap, so the pills flex down to --dpill-min before
+   the strip gives up and renders fewer days (see daysThatFit in app.js). */
 .datestrip__list{
+  --dpill-min: 34px;
+  --dpill-gap: 4px;
   flex:1;
+  min-width:0;          /* without this the pills' min-width becomes the
+                           strip's floor and clientWidth never reports the
+                           squeeze, so the day count could not react to it */
   display:flex;
-  justify-content:space-between;
+  /* Centred rather than spread: when the strip drops days the leftovers
+     would otherwise blow the gaps out to 20px+ between three lonely pills. */
+  justify-content:center;
+  gap:var(--dpill-gap);
   margin:0; padding:0;
   list-style:none;
 }
+.datestrip__list > li{ flex:1 1 0; min-width:var(--dpill-min); max-width:38px; }
 /* Selected state is a single element: one 1px stroke around the whole shape,
    with the green lip as the bottom 3px of the background so the same radius
    clips both. Stacking two stroked frames made the lip read as ragged where
@@ -363,16 +374,20 @@ svg{ display:block; }
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  width:38px;
+  width:100%;
   height:51px;
-  padding:8px;
+  padding:8px 4px;
   gap:4px;
   border-radius:var(--r-xs);
   color:var(--text-body);
   transition:background .15s ease;
 }
 .dpill:hover{ background:var(--bg-hover); }
-.dpill > span{ position:relative; z-index:1; }
+/* Only the two labels are lifted above the background. The dot is left out
+   on purpose: giving it position:relative here beat its own absolute rule on
+   specificity, so it rejoined the flex flow and shunted the labels 2px up on
+   every day that had campaigns. */
+.dpill__num, .dpill__day{ position:relative; z-index:1; }
 .dpill__num{ font-size:16px; font-weight:500; line-height:1; letter-spacing:-.01em; }
 .dpill__day{ font-size:13px; font-weight:500; line-height:1; color:var(--text-muted); }
 
@@ -451,8 +466,10 @@ svg{ display:block; }
 
 .dpill.is-active .dpill__day{ color:var(--brand); }
 
-/* today, when it is not the selected day, keeps a quiet marker */
-.dpill.is-today:not(.is-active) .dpill__num{ color:var(--brand); }
+/* Today, when it is not the selected day, is emphasised but never green —
+   green is the selection's colour alone, and two greens in the strip read as
+   two selections. */
+.dpill.is-today:not(.is-active) .dpill__num{ color:var(--text-strong); font-weight:600; }
 
 /* a day that has campaigns in the current tab */
 .dpill__dot{
