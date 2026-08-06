@@ -1300,29 +1300,29 @@ svg{ display:block; }
 .picktab{
   display:flex;
   align-items:center;
-  gap:5px;
+  gap:6px;
   flex:0 0 auto;
-  height:30px;
-  padding:0 11px;
-  border:1px solid var(--line-strong);
-  border-radius:var(--r-pill);
-  background:var(--bg-surface);
+  height:32px;
+  padding:0 12px;
+  border-radius:var(--r-xs);
+  background:var(--bg-subtle);
   font-size:12.5px;
   font-weight:500;
   color:var(--text-body);
   white-space:nowrap;
-  transition:background .12s ease, color .12s ease, border-color .12s ease;
+  transition:background .12s ease, color .12s ease;
 }
-.picktab:hover{ background:var(--bg-subtle); color:var(--text-strong); }
+.picktab:hover{ background:var(--bg-hover); color:var(--text-strong); }
 .picktab__icon{ display:grid; place-items:center; }
 .picktab__icon svg{ width:14px; height:14px; }
+/* selected reads like the schedule popover's Once/Daily chips: soft green
+   fill, green text — same control, same meaning, one look */
 .picktab.is-on{
-  background:var(--dark);
-  border-color:var(--dark);
-  color:#fff;
+  background:var(--brand-soft);
+  color:var(--brand);
   font-weight:600;
 }
-.picktab.is-on:hover{ background:var(--dark); color:#fff; }
+.picktab.is-on:hover{ background:var(--brand-soft); color:var(--brand); }
 
 .picklist{
   max-height:236px;
