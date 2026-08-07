@@ -1,0 +1,318 @@
+/* =====================================================================
+   Auth — sign in / sign up.
+
+   Tokens, fonts and the button language all come from styles.css; this
+   file only adds what the signed-out screens need. The whole page is one
+   card floating on a generated sky, so almost everything here is either
+   the ground or that card.
+   ===================================================================== */
+
+.auth-body{
+  min-height:100%;
+  margin:0;
+  padding:0;
+  background:#F4F7F4;         /* shows through before the sky loads */
+  overflow-x:hidden;          /* the arcs overhang; vertical scroll stays */
+}
+
+/* ------------------------------------------------------------- the sky */
+/* The generated image is a ground, not a picture: it is scaled to cover
+   and pinned to the bottom so the empty upper half always sits behind the
+   card no matter the viewport. */
+.sky{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 34%),
+    url("../assets/auth-sky.jpg") center 62%/cover no-repeat,
+    linear-gradient(180deg, #DCEFE4 0%, #F2F6EF 52%, #FBFBF9 100%);
+}
+
+/* The reference's thin light rings. Drawn in CSS rather than baked into
+   the image so they stay hairline-crisp at any size and can be re-tinted
+   without regenerating anything. */
+.sky__arcs{
+  position:absolute;
+  left:50%;
+  bottom:-58vh;
+  width:170vh;
+  height:170vh;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,
+      transparent 0 43.5%, rgba(255,255,255,.55) 43.5% 43.62%,
+      transparent 43.62% 48%, rgba(255,255,255,.45) 48% 48.12%,
+      transparent 48.12% 50%);
+}
+
+/* ------------------------------------------------------------- brand */
+.auth-brand{
+  position:fixed;
+  top:26px;
+  left:30px;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.auth-brand__mark{
+  width:30px; height:30px;
+  display:grid; place-items:center;
+  background:var(--text-strong);
+  border-radius:9px;
+}
+.auth-brand__mark svg{ width:19px; height:19px; }
+.auth-brand__name{
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:-.02em;
+  color:var(--text-strong);
+}
+
+/* -------------------------------------------------------------- stage */
+.auth{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:88px 20px 40px;
+}
+
+/* --------------------------------------------------------------- card */
+/* Frosted rather than solid: the sky reads through it, which is what makes
+   the reference feel like glass on air instead of a panel on a photo. */
+.authcard{
+  width:100%;
+  max-width:352px;
+  padding:26px 28px 24px;
+  text-align:center;
+  border-radius:var(--r-2xl);
+  background:linear-gradient(180deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.94) 46%);
+  backdrop-filter:blur(22px) saturate(1.5);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 0 1px rgba(41,41,41,.05),
+    0 26px 50px -18px rgba(42,51,70,.16),
+    0 6px 14px -8px rgba(42,51,70,.1);
+  animation:card-rise .5s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes card-rise{
+  from{ opacity:0; transform:translateY(12px) scale(.985); }
+  to  { opacity:1; transform:none; }
+}
+
+.authcard__badge{
+  display:grid;
+  place-items:center;
+  width:46px; height:46px;
+  margin:0 auto 16px;
+  border-radius:14px;
+  background:var(--bg-surface);
+  color:var(--brand);
+  box-shadow:
+    inset 0 1px 0 #FFF,
+    0 0 0 1px rgba(41,41,41,.05),
+    0 6px 12px -6px rgba(42,51,70,.22);
+}
+.authcard__badge svg{ width:22px; height:22px; }
+
+.authcard__title{
+  margin:0 0 6px;
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:-.02em;
+  color:var(--text-strong);
+}
+.authcard__sub{
+  margin:0 auto 20px;
+  max-width:30ch;
+  font-size:13px;
+  line-height:1.5;
+  color:var(--text-muted);
+}
+
+/* -------------------------------------------------------------- form */
+.authform{ display:flex; flex-direction:column; gap:9px; }
+
+.field{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  height:44px;
+  padding:0 12px;
+  border-radius:var(--r-md);
+  background:rgba(245,245,245,.85);
+  box-shadow:inset 0 0 0 1px rgba(41,41,41,.05);
+  transition:box-shadow .15s ease, background .15s ease;
+}
+.field:focus-within{
+  background:var(--bg-surface);
+  box-shadow:inset 0 0 0 1px var(--brand), 0 0 0 3px var(--brand-soft);
+}
+.field[hidden]{ display:none; }
+.field__icon{ width:17px; height:17px; flex:0 0 17px; color:var(--text-faint); }
+.field__icon svg{ width:100%; height:100%; }
+.field input{
+  flex:1;
+  min-width:0;
+  height:100%;
+  border:0;
+  background:none;
+  font-size:13.5px;
+  color:var(--text-strong);
+  outline:none;
+}
+.field input::placeholder{ color:var(--text-placeholder); }
+
+.field__peek{
+  flex:0 0 18px;
+  width:18px; height:18px;
+  color:var(--text-muted);
+  transition:color .12s ease;
+}
+.field__peek:hover{ color:var(--text-body); }
+.field__peek svg{ width:100%; height:100%; }
+.field__peek .field__peek-on{ display:none; }
+.field__peek[aria-pressed="true"] .field__peek-off{ display:none; }
+.field__peek[aria-pressed="true"] .field__peek-on{ display:block; }
+
+.authform__aside{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:20px;
+  margin:1px 0 3px;
+}
+.authform__forgot{
+  margin-left:auto;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text-body);
+}
+.authform__forgot:hover{ color:var(--brand); }
+
+/* terms checkbox, sign-up only. The real input keeps its own size and sits
+   over the drawn box — a zero-sized input is invisible to pointer and to
+   anything driving the page, and only the label would be clickable. */
+.check{ position:relative; display:flex; align-items:center; gap:8px; text-align:left; cursor:pointer; }
+.check[hidden]{ display:none; }
+.check input{
+  position:absolute;
+  left:0; top:50%;
+  width:16px; height:16px;
+  margin:0;
+  transform:translateY(-50%);
+  opacity:0;
+  cursor:pointer;
+}
+.check__box{
+  flex:0 0 16px;
+  width:16px; height:16px;
+  display:grid; place-items:center;
+  border-radius:5px;
+  border:1.5px solid var(--line-strong);
+  background:var(--bg-surface);
+  color:#fff;
+  pointer-events:none;   /* decoration only — clicks belong to the input under it */
+  transition:background .12s ease, border-color .12s ease;
+}
+.check__box svg{ width:10px; height:10px; opacity:0; }
+.check input:checked + .check__box{ background:var(--brand); border-color:var(--brand); }
+.check input:checked + .check__box svg{ opacity:1; }
+.check input:focus-visible + .check__box{ box-shadow:0 0 0 3px var(--brand-soft); }
+.check__label{ font-size:11.5px; line-height:1.35; color:var(--text-muted); }
+
+.authform__error{
+  margin:0;
+  font-size:12px;
+  font-weight:500;
+  color:#C7452F;
+  text-align:left;
+}
+.authform__error[hidden]{ display:none; }
+
+/* Unlike Confirm in the composer, this one is never disabled — Confirm
+   guards an irreversible send to hundreds of people, while a login form
+   just needs to tell you what is wrong. Disabled only marks work in
+   flight. */
+.authbtn{
+  height:44px;
+  margin-top:2px;
+  border:0;
+  border-radius:var(--r-pill);
+  background:var(--btn-dark);
+  box-shadow:var(--sh-sm);
+  font:inherit;
+  font-size:14px;
+  font-weight:600;
+  color:#fff;
+  cursor:pointer;
+  transition:filter .15s ease, opacity .15s ease;
+}
+.authbtn:hover:not(:disabled){ filter:brightness(1.14); }
+.authbtn:disabled{ opacity:.42; cursor:not-allowed; }
+
+/* ------------------------------------------------------- alternatives */
+.authdiv{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:16px 0 12px;
+  font-size:11px;
+  color:var(--text-faint);
+}
+.authdiv::before, .authdiv::after{
+  content:"";
+  flex:1;
+  border-top:1px dashed rgba(41,41,41,.13);
+}
+
+.social{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.social__btn{
+  height:42px;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:var(--r-md);
+  background:var(--bg-surface);
+  box-shadow:0 0 0 1px rgba(41,41,41,.06), var(--sh-sm);
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.social__btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 0 1px rgba(41,41,41,.1), var(--sh-md);
+}
+.social__btn svg{ width:19px; height:19px; }
+
+.authswap{
+  margin:18px 0 0;
+  font-size:12.5px;
+  color:var(--text-muted);
+}
+.authswap button{
+  padding:0;
+  border:0;
+  background:none;
+  font:inherit;
+  font-weight:600;
+  color:var(--brand);
+  cursor:pointer;
+}
+.authswap button:hover{ text-decoration:underline; text-underline-offset:2px; }
+
+/* --------------------------------------------------------- responsive */
+@media (max-width:520px){
+  .auth-brand{ top:18px; left:18px; }
+  .auth{ padding:74px 16px 32px; }
+  .authcard{ padding:24px 20px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .authcard{ animation:none; }
+  .social__btn:hover{ transform:none; }
+}
