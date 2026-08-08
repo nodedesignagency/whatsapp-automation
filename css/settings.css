@@ -1,0 +1,482 @@
+/* =====================================================================
+   Settings.
+
+   Every settings screen is the same three parts: a heading, one or more
+   cards of label/control rows, and an optional action foot. Tokens all
+   come from styles.css — this file only describes the settings furniture.
+   ===================================================================== */
+
+/* .panel and .composer set display on the class, which outranks the UA's
+   [hidden] rule — without these they stay on screen behind a settings pane. */
+.panel[hidden], .composer[hidden]{ display:none; }
+
+.settings{
+  flex:1;
+  min-width:0;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#DDD transparent;
+  padding:6px 8px 28px 6px;
+}
+.settings[hidden]{ display:none; }
+.settings::-webkit-scrollbar{ width:6px; }
+.settings::-webkit-scrollbar-thumb{ background:#DDD; border-radius:3px; }
+
+.setpane{
+  max-width:720px;
+  margin:0 auto;
+  animation:pane-in .3s cubic-bezier(.2,.7,.3,1) both;
+}
+.setpane[hidden]{ display:none; }
+.setpane--narrow{ max-width:520px; }
+@keyframes pane-in{
+  from{ opacity:0; transform:translateY(8px); }
+  to  { opacity:1; transform:none; }
+}
+
+.setpane__head{ padding:14px 4px 18px; }
+.setpane__title{
+  margin:0 0 5px;
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-.02em;
+  color:var(--text-strong);
+}
+.setpane__sub{ margin:0; font-size:13.5px; color:var(--text-muted); }
+
+/* ---------------------------------------------------------------- card */
+.setcard{
+  padding:6px 20px;
+  margin-bottom:14px;
+  background:var(--bg-surface);
+  border-radius:var(--r-lg);
+  box-shadow:0 0 0 1px var(--line), var(--sh-sm);
+}
+.setcard--flush{ padding:0; overflow:hidden; }
+.setcard__bar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:15px 20px;
+  border-bottom:1px solid var(--line);
+}
+.setcard__heading{
+  margin:0;
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.setcard__bar .linkbtn{ margin-left:auto; }
+
+/* one row = one setting; the hairline between rows is the card's rhythm */
+.setrow{
+  display:flex;
+  align-items:center;
+  gap:24px;
+  padding:16px 0;
+}
+.setrow + .setrow{ border-top:1px solid var(--line); }
+.setrow__label{ flex:1 1 auto; min-width:0; }
+.setrow__name{
+  display:block;
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.setrow__hint{
+  display:block;
+  margin-top:3px;
+  font-size:12.5px;
+  line-height:1.45;
+  color:var(--text-muted);
+}
+.setrow__control{ flex:0 0 268px; max-width:268px; }
+.setrow__control--end{ flex:0 0 auto; display:flex; justify-content:flex-end; }
+
+/* -------------------------------------------------------------- inputs */
+.inp{
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:38px;
+  padding:0 11px;
+  background:var(--bg-subtle);
+  border:0;
+  border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px rgba(41,41,41,.05);
+  font:inherit;
+  font-size:13px;
+  color:var(--text-strong);
+  transition:box-shadow .15s ease, background .15s ease;
+}
+.inp:focus,
+.inp:focus-within{
+  outline:none;
+  background:var(--bg-surface);
+  box-shadow:inset 0 0 0 1px var(--brand), 0 0 0 3px var(--brand-soft);
+}
+select.inp{ cursor:pointer; appearance:none; padding-right:30px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='m6 9 6 6 6-6' stroke='%236A6970' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat; background-position:right 9px center; background-size:15px; }
+
+.inp--prefixed{ padding:0; overflow:hidden; }
+.inp__prefix{
+  display:grid;
+  place-items:center;
+  height:100%;
+  padding:0 2px 0 11px;
+  font-size:12.5px;
+  color:var(--text-faint);
+  white-space:nowrap;
+}
+.inp--prefixed input,
+.inp--peek input{
+  flex:1;
+  min-width:0;
+  height:100%;
+  border:0;
+  background:none;
+  font:inherit;
+  font-size:13px;
+  color:var(--text-strong);
+  outline:none;
+}
+.inp--peek{ padding-right:8px; }
+.inp--peek input{ padding-left:11px; }
+.inp__peek{
+  flex:0 0 17px;
+  width:17px; height:17px;
+  color:var(--text-faint);
+}
+.inp__peek:hover{ color:var(--text-body); }
+.inp__peek svg{ width:100%; height:100%; }
+.inp__peek[aria-pressed="true"]{ color:var(--brand); }
+
+/* stacked label + field, for forms that are not label/control rows */
+.stack{ display:block; padding:14px 0; }
+.stack + .stack{ border-top:1px solid var(--line); }
+.stack__label{
+  display:block;
+  margin-bottom:7px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+
+/* requirements checklist — ticks as the rule is met */
+.reqs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 18px;
+  margin:0;
+  padding:2px 0 12px;
+  list-style:none;
+}
+.reqs li{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:12.5px;
+  color:var(--text-faint);
+  transition:color .15s ease;
+}
+.reqs li span{
+  flex:0 0 14px;
+  width:14px; height:14px;
+  border-radius:50%;
+  border:1.5px solid var(--line-strong);
+  background:var(--bg-surface);
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:9px;
+  transition:background-color .15s ease, border-color .15s ease;
+}
+.reqs li.is-met{ color:var(--brand); }
+.reqs li.is-met span{
+  border-color:var(--brand);
+  background-color:var(--brand);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='m5 12.5 4.5 4.5L19 7.5' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+/* ------------------------------------------------------------- chips */
+.segchips{ display:flex; gap:6px; }
+.segchip{
+  flex:1;
+  height:34px;
+  padding:0 10px;
+  border-radius:var(--r-xs);
+  background:var(--bg-subtle);
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--text-body);
+  white-space:nowrap;
+  transition:background .12s ease, color .12s ease;
+}
+.segchip:hover{ background:var(--bg-hover); color:var(--text-strong); }
+.segchip.is-on{ background:var(--brand-soft); color:var(--brand); font-weight:600; }
+
+/* ------------------------------------------------------------ switch */
+.switch{
+  width:40px; height:23px;
+  padding:2px;
+  border-radius:var(--r-pill);
+  background:var(--line-strong);
+  transition:background .18s ease;
+}
+.switch i{
+  display:block;
+  width:19px; height:19px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(42,51,70,.28);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1);
+}
+.switch.is-on{ background:var(--brand); }
+.switch.is-on i{ transform:translateX(17px); }
+
+/* --------------------------------------------------------------- foot */
+.setfoot{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:2px 4px 8px;
+}
+.setfoot--inline{ padding:14px 0 16px; border-top:1px solid var(--line); }
+.setfoot__note{ font-size:12.5px; color:var(--text-faint); }
+.setfoot .btn--primary{ margin-left:auto; height:38px; padding:0 18px; }
+.setfoot--inline .btn--primary{ margin-left:0; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.setmsg{
+  margin:2px 0 0;
+  font-size:12.5px;
+  font-weight:500;
+  color:#C7452F;
+}
+.setmsg.is-ok{ color:var(--brand); }
+.setmsg[hidden]{ display:none; }
+
+.linkbtn{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--brand);
+}
+.linkbtn:hover{ text-decoration:underline; text-underline-offset:2px; }
+
+.vh{
+  position:absolute; width:1px; height:1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* ============================ CONNECTION ============================ */
+.setcard--hero{
+  padding:34px 30px 28px;
+  text-align:center;
+}
+.wamark{
+  display:grid;
+  place-items:center;
+  width:54px; height:54px;
+  margin:0 auto 16px;
+  border-radius:16px;
+  background:var(--brand-soft);
+  color:var(--brand);
+}
+.wamark svg{ width:28px; height:28px; }
+.setcard__title{
+  margin:0 0 7px;
+  font-size:17px;
+  font-weight:700;
+  letter-spacing:-.01em;
+  color:var(--text-strong);
+}
+.setcard__body{
+  margin:0 auto 18px;
+  max-width:46ch;
+  font-size:13.5px;
+  line-height:1.55;
+  color:var(--text-muted);
+}
+.setcard__fine{ margin:14px 0 0; font-size:12px; color:var(--text-faint); }
+
+.whatnext{
+  display:inline-flex;
+  flex-direction:column;
+  gap:9px;
+  margin:0 0 22px;
+  padding:0;
+  list-style:none;
+  text-align:left;
+}
+.whatnext li{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:13px;
+  color:var(--text-body);
+}
+.whatnext li span{
+  flex:0 0 16px;
+  width:16px; height:16px;
+  border-radius:50%;
+  background:var(--brand-soft);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='m5 12.5 4.5 4.5L19 7.5' stroke='%2338AE6A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:10px;
+}
+
+.wacard{ padding:20px; }
+.wacard__top{ display:flex; align-items:center; gap:13px; }
+.wacard__avatar{
+  display:grid; place-items:center;
+  width:44px; height:44px; flex:0 0 44px;
+  border-radius:50%;
+  background:var(--brand-soft);
+  color:var(--brand);
+}
+.wacard__avatar svg{ width:23px; height:23px; }
+.wacard__id{ min-width:0; }
+.wacard__num{
+  display:block;
+  font-size:15px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.wacard__name{ display:block; font-size:12.5px; color:var(--text-muted); }
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 11px;
+  border-radius:var(--r-pill);
+  font-size:12px;
+  font-weight:600;
+}
+.pill--live{ margin-left:auto; background:var(--brand-soft); color:var(--brand); }
+.pill--live i{
+  width:7px; height:7px;
+  border-radius:50%;
+  background:var(--brand);
+  box-shadow:0 0 0 3px rgba(56,174,106,.18);
+}
+.pill--plan{ background:var(--brand-soft); color:var(--brand); }
+
+.wastats{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0,1fr));
+  gap:14px;
+  margin:20px 0 0;
+  padding:16px 0 4px;
+  border-top:1px solid var(--line);
+}
+.wastats dt{ font-size:11.5px; color:var(--text-faint); }
+.wastats dd{
+  margin:4px 0 0;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.wastats dd.is-good{ color:var(--brand); }
+
+.wacard__acts{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:16px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+}
+.btn--danger{ color:#C7452F; }
+.btn--danger:hover{ color:#A5361F; }
+
+/* ============================== BILLING ============================= */
+.plancard{ padding:20px; }
+.plancard__top{ display:flex; align-items:flex-start; gap:20px; }
+.plancard__price{
+  margin:11px 0 3px;
+  font-size:27px;
+  font-weight:700;
+  letter-spacing:-.03em;
+  color:var(--text-strong);
+}
+.plancard__price span{
+  font-size:14px;
+  font-weight:500;
+  letter-spacing:0;
+  color:var(--text-muted);
+}
+.plancard__renew{ margin:0; font-size:12.5px; color:var(--text-muted); }
+.plancard__top .btn--primary{ margin-left:auto; height:38px; padding:0 16px; }
+
+.meters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:18px;
+  margin-top:20px;
+  padding-top:18px;
+  border-top:1px solid var(--line);
+}
+.meter__head{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:8px;
+  font-size:12.5px;
+  color:var(--text-muted);
+}
+.meter__val{
+  margin-left:auto;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-strong);
+}
+.meter__val i{ font-style:normal; font-weight:500; color:var(--text-faint); }
+.meter__track{
+  height:7px;
+  border-radius:4px;
+  background:var(--bg-subtle);
+  overflow:hidden;
+}
+.meter__track span{
+  display:block;
+  height:100%;
+  border-radius:4px;
+  background:linear-gradient(90deg, #4FC07C, var(--brand));
+}
+
+.invoices{ width:100%; border-collapse:collapse; }
+.invoices th{
+  padding:11px 20px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  text-align:left;
+  background:var(--bg-subtle);
+}
+.invoices td{
+  padding:14px 20px;
+  font-size:13px;
+  color:var(--text-body);
+  border-top:1px solid var(--line);
+}
+.invoices td:first-child{ font-weight:500; color:var(--text-strong); }
+.invoices td:last-child{ text-align:right; }
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width:900px){
+  .setrow{ flex-direction:column; align-items:stretch; gap:10px; }
+  .setrow__control{ flex:1 1 auto; max-width:none; }
+  .setrow__control--end{ justify-content:flex-start; }
+  .wastats{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .plancard__top{ flex-direction:column; }
+  .plancard__top .btn--primary{ margin-left:0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .setpane{ animation:none; }
+  .switch i{ transition:none; }
+}

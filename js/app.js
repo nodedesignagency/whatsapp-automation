@@ -201,7 +201,24 @@
     accountBtn: $("#accountBtn"),
     settingsToggle: $("#settingsToggle"),
     settingsSub: $("#settingsSub"),
+    settingsView: $("#settingsView"),
+    panel: $(".panel"),
+    composer: $(".composer"),
     toast: $("#toast"),
+    genSave: $("#genSave"),
+    genNote: $("#genNote"),
+    waDisconnected: $("#waDisconnected"),
+    waConnected: $("#waConnected"),
+    waConnect: $("#waConnect"),
+    waResync: $("#waResync"),
+    waDisconnect: $("#waDisconnect"),
+    waSync: $("#waSync"),
+    pwForm: $("#pwForm"),
+    pwCurrent: $("#pwCurrent"),
+    pwNew: $("#pwNew"),
+    pwConfirm: $("#pwConfirm"),
+    pwReqs: $("#pwReqs"),
+    pwMsg: $("#pwMsg"),
     composer: $(".composer"),
     composerEmpty: $("#composerEmpty"),
     emptyNewBtn: $("#emptyNewBtn"),
@@ -930,16 +947,7 @@
 
   /* ------------------------------------------------------ sidebar nav */
 
-  /* Message Scheduler is the only screen that exists. Everything under
-     Settings still selects and says what it will hold — a nav item that
-     swallows the click and leaves you where you were reads as a bug. */
-  var VIEWS = {
-    scheduler:  null,
-    general:    "General settings are coming soon — workspace name, timezone and language.",
-    connection: "WhatsApp connection is coming soon — link your Business number and sync contacts.",
-    password:   "Change Password is coming soon.",
-    billing:    "Subscription and billing is coming soon — your plan and invoices."
-  };
+  var SETTINGS_PANES = ["general", "connection", "password", "billing"];
 
   var toastTimer = null;
 
@@ -957,18 +965,29 @@
      highlight and the other way round, so the sidebar never shows two
      places at once. */
   function selectNav(chosen) {
-    navItems.forEach(function (item) {
+    [].concat([].slice.call(navItems), [].slice.call(subItems)).forEach(function (item) {
       var on = item === chosen;
       item.classList.toggle("is-active", on);
       if (on) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
     });
-    subItems.forEach(function (item) {
-      var on = item === chosen;
-      item.classList.toggle("is-active", on);
-      if (on) item.setAttribute("aria-current", "page");
-      else item.removeAttribute("aria-current");
+  }
+
+  /* The scheduler is the panel plus the composer; a settings pane replaces
+     both. Only one pane is ever in the tree's flow at a time. */
+  function showView(view) {
+    var settings = SETTINGS_PANES.indexOf(view) > -1;
+
+    els.panel.hidden = settings;
+    els.composer.hidden = settings;
+    els.settingsView.hidden = !settings;
+
+    els.settingsView.querySelectorAll(".setpane").forEach(function (pane) {
+      pane.hidden = pane.dataset.pane !== view;
     });
+
+    els.settingsView.scrollTop = 0;
+    els.toast.hidden = true;
   }
 
   function setSettingsOpen(open) {
@@ -983,8 +1002,7 @@
   navItems.forEach(function (item) {
     item.addEventListener("click", function () {
       selectNav(item);
-      els.toast.hidden = true;
-      if (VIEWS[item.dataset.view]) showToast(VIEWS[item.dataset.view]);
+      showView(item.dataset.view);
     });
   });
 
@@ -995,17 +1013,180 @@
         return;
       }
       selectNav(item);
-      showToast(VIEWS[item.dataset.view]);
+      showView(item.dataset.view);
     });
   });
 
-  /* The account row is the same destination as Settings > General, so it
-     goes there rather than opening a second menu with the same contents. */
+  /* The account row is the same destination as Settings > General. */
   els.accountBtn.addEventListener("click", function () {
     setSettingsOpen(true);
     var general = document.querySelector('.navsub__item[data-view="general"]');
     if (general) general.click();
   });
+
+  /* ------------------------------------------------------ settings: general */
+
+  /* Save is enabled by difference, not by touch: typing a character and
+     deleting it again should leave the button where it started. */
+  var GEN_FIELDS = ["genName", "genSlug", "genEmail", "genTz"];
+  var genInitial = {};
+
+  function genSnapshot() {
+    var snap = {};
+    GEN_FIELDS.forEach(function (id) { snap[id] = $("#" + id).value; });
+    return snap;
+  }
+
+  function genDirty() {
+    var now = genSnapshot();
+    return GEN_FIELDS.some(function (id) { return now[id] !== genInitial[id]; });
+  }
+
+  function syncGeneral() {
+    var dirty = genDirty();
+    els.genSave.disabled = !dirty;
+    els.genNote.textContent = dirty ? "Unsaved changes" : "No unsaved changes";
+  }
+
+  genInitial = genSnapshot();
+  GEN_FIELDS.forEach(function (id) {
+    $("#" + id).addEventListener("input", syncGeneral);
+    $("#" + id).addEventListener("change", syncGeneral);
+  });
+
+  els.genSave.addEventListener("click", function () {
+    genInitial = genSnapshot();
+    syncGeneral();
+    showToast("Settings saved.");
+  });
+
+  /* radio-style chip groups */
+  document.querySelectorAll(".segchips").forEach(function (group) {
+    group.querySelectorAll(".segchip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        group.querySelectorAll(".segchip").forEach(function (other) {
+          var on = other === chip;
+          other.classList.toggle("is-on", on);
+          other.setAttribute("aria-checked", on ? "true" : "false");
+        });
+      });
+    });
+  });
+
+  /* --------------------------------------------------- settings: connection */
+
+  function setConnected(on) {
+    els.waDisconnected.hidden = on;
+    els.waConnected.hidden = !on;
+  }
+
+  els.waConnect.addEventListener("click", function () {
+    els.waConnect.disabled = true;
+    els.waConnect.textContent = "Opening Meta…";
+
+    /* Stands in for the Embedded Signup popup: the real one hands back a
+       code, a WABA id and a phone number id, which the backend exchanges
+       for a token before any of this renders. */
+    window.setTimeout(function () {
+      els.waConnect.disabled = false;
+      els.waConnect.textContent = "Connect WhatsApp Business";
+      setConnected(true);
+      showToast("Connected +91 98200 12345 · 412 contacts synced.");
+    }, 1300);
+  });
+
+  els.waResync.addEventListener("click", function () {
+    els.waSync.textContent = "syncing…";
+    window.setTimeout(function () {
+      els.waSync.textContent = "just now";
+      showToast("Contacts are up to date.");
+    }, 900);
+  });
+
+  els.waDisconnect.addEventListener("click", function () {
+    setConnected(false);
+    showToast("Number disconnected. Scheduled campaigns will not send.");
+  });
+
+  document.querySelectorAll(".switch").forEach(function (sw) {
+    sw.addEventListener("click", function () {
+      var on = !sw.classList.contains("is-on");
+      sw.classList.toggle("is-on", on);
+      sw.setAttribute("aria-checked", on ? "true" : "false");
+    });
+  });
+
+  /* ----------------------------------------------------- settings: password */
+
+  var PW_RULES = {
+    len:  function (v) { return v.length >= 8; },
+    num:  function (v) { return /[0-9]/.test(v); },
+    "case": function (v) { return /[A-Z]/.test(v); }
+  };
+
+  function syncPwReqs() {
+    var value = els.pwNew.value;
+    els.pwReqs.querySelectorAll("li").forEach(function (li) {
+      li.classList.toggle("is-met", PW_RULES[li.dataset.req](value));
+    });
+  }
+
+  function pwMessage(text, ok) {
+    els.pwMsg.textContent = text;
+    els.pwMsg.hidden = !text;
+    els.pwMsg.classList.toggle("is-ok", !!ok);
+  }
+
+  els.pwNew.addEventListener("input", function () {
+    syncPwReqs();
+    if (!els.pwMsg.hidden) pwMessage("");
+  });
+  [els.pwCurrent, els.pwConfirm].forEach(function (input) {
+    input.addEventListener("input", function () {
+      if (!els.pwMsg.hidden) pwMessage("");
+    });
+  });
+
+  els.pwForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    var value = els.pwNew.value;
+
+    if (!els.pwCurrent.value) return pwMessage("Enter your current password.");
+    if (!Object.keys(PW_RULES).every(function (k) { return PW_RULES[k](value); })) {
+      return pwMessage("New password does not meet the requirements above.");
+    }
+    if (value === els.pwCurrent.value) {
+      return pwMessage("New password must be different from the current one.");
+    }
+    if (value !== els.pwConfirm.value) return pwMessage("Passwords do not match.");
+
+    els.pwForm.reset();
+    syncPwReqs();
+    pwMessage("Password updated.", true);
+  });
+
+  /* shared peek toggles inside settings */
+  document.querySelectorAll(".inp__peek").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = $("#" + btn.dataset.peek);
+      var shown = btn.getAttribute("aria-pressed") === "true";
+      btn.setAttribute("aria-pressed", shown ? "false" : "true");
+      btn.setAttribute("aria-label", shown ? "Show password" : "Hide password");
+      input.type = shown ? "password" : "text";
+      input.focus();
+    });
+  });
+
+  /* anything in settings that is still a promise says so */
+  document.querySelectorAll("[data-soon]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showToast(btn.dataset.soon + " is coming soon.");
+    });
+  });
+
+  syncGeneral();
+  syncPwReqs();
 
   /* --------------------------------------------- confirm and cancel */
 
