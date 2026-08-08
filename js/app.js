@@ -207,6 +207,13 @@
     toast: $("#toast"),
     genSave: $("#genSave"),
     genNote: $("#genNote"),
+    genAvatarImg: $("#genAvatarImg"),
+    genAvatarPick: $("#genAvatarPick"),
+    genAvatarClear: $("#genAvatarClear"),
+    genAvatarInput: $("#genAvatarInput"),
+    accountAvatar: document.querySelector(".account__avatar img"),
+    accountName: document.querySelector(".account__name"),
+    accountMail: document.querySelector(".account__mail"),
     waDisconnected: $("#waDisconnected"),
     waConnected: $("#waConnected"),
     waConnect: $("#waConnect"),
@@ -1034,17 +1041,21 @@
   /* Save is enabled by difference, not by touch: typing a character and
      deleting it again should leave the button where it started. */
   var GEN_FIELDS = ["genName", "genEmail", "genTz"];
+  var DEFAULT_AVATAR = "assets/avatar-1.svg";
   var genInitial = {};
 
+  /* The picture is part of the form, so it belongs in the snapshot — pick a
+     photo and Save must light up the same way typing does. */
   function genSnapshot() {
     var snap = {};
     GEN_FIELDS.forEach(function (id) { snap[id] = $("#" + id).value; });
+    snap.avatar = els.genAvatarImg.getAttribute("src");
     return snap;
   }
 
   function genDirty() {
     var now = genSnapshot();
-    return GEN_FIELDS.some(function (id) { return now[id] !== genInitial[id]; });
+    return Object.keys(now).some(function (key) { return now[key] !== genInitial[key]; });
   }
 
   function syncGeneral() {
@@ -1062,7 +1073,46 @@
   els.genSave.addEventListener("click", function () {
     genInitial = genSnapshot();
     syncGeneral();
+    /* Save is the commit point, so the sidebar only follows once it happens —
+       the row above is a preview until then. */
+    els.accountAvatar.src = genInitial.avatar;
+    els.accountName.textContent = $("#genName").value.trim() || "Untitled workspace";
+    els.accountMail.textContent = $("#genEmail").value.trim();
     showToast("Settings saved.");
+  });
+
+  /* ------------------------------------------------ settings: avatar */
+
+  var MAX_AVATAR = 2 * 1024 * 1024;
+
+  els.genAvatarPick.addEventListener("click", function () {
+    els.genAvatarInput.click();
+  });
+
+  els.genAvatarInput.addEventListener("change", function () {
+    var file = els.genAvatarInput.files && els.genAvatarInput.files[0];
+    if (!file) return;
+
+    if (file.size > MAX_AVATAR) {
+      showToast("That image is over 2 MB. Pick a smaller one.");
+      els.genAvatarInput.value = "";
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      els.genAvatarImg.src = reader.result;
+      syncGeneral();
+    };
+    reader.readAsDataURL(file);
+
+    /* cleared so choosing the same file twice still fires a change */
+    els.genAvatarInput.value = "";
+  });
+
+  els.genAvatarClear.addEventListener("click", function () {
+    els.genAvatarImg.src = DEFAULT_AVATAR;
+    syncGeneral();
   });
 
   /* radio-style chip groups */
