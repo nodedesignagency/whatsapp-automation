@@ -198,6 +198,10 @@
     saveBackdrop: $("#saveBackdrop"),
     discardBtn: $("#discardBtn"),
     saveDraftBtn: $("#saveDraftBtn"),
+    accountBtn: $("#accountBtn"),
+    settingsToggle: $("#settingsToggle"),
+    settingsSub: $("#settingsSub"),
+    toast: $("#toast"),
     composer: $(".composer"),
     composerEmpty: $("#composerEmpty"),
     emptyNewBtn: $("#emptyNewBtn"),
@@ -924,12 +928,83 @@
     syncConfirm();
   });
 
-  document.querySelectorAll(".nav-item").forEach(function (item) {
-    item.addEventListener("click", function (e) {
-      e.preventDefault();
-      document.querySelectorAll(".nav-item").forEach(function (o) { o.classList.remove("is-active"); });
-      item.classList.add("is-active");
+  /* ------------------------------------------------------ sidebar nav */
+
+  /* Message Scheduler is the only screen that exists. Everything under
+     Settings still selects and says what it will hold — a nav item that
+     swallows the click and leaves you where you were reads as a bug. */
+  var VIEWS = {
+    scheduler:  null,
+    general:    "General settings are coming soon — workspace name, timezone and language.",
+    connection: "WhatsApp connection is coming soon — link your Business number and sync contacts.",
+    password:   "Change Password is coming soon.",
+    billing:    "Subscription and billing is coming soon — your plan and invoices."
+  };
+
+  var toastTimer = null;
+
+  function showToast(message) {
+    els.toast.textContent = message;
+    els.toast.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { els.toast.hidden = true; }, 3200);
+  }
+
+  var navItems = document.querySelectorAll(".nav-item:not(.nav-item--parent)");
+  var subItems = document.querySelectorAll(".navsub__item");
+
+  /* One selection across both levels: picking a child clears the top-level
+     highlight and the other way round, so the sidebar never shows two
+     places at once. */
+  function selectNav(chosen) {
+    navItems.forEach(function (item) {
+      var on = item === chosen;
+      item.classList.toggle("is-active", on);
+      if (on) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
     });
+    subItems.forEach(function (item) {
+      var on = item === chosen;
+      item.classList.toggle("is-active", on);
+      if (on) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
+  }
+
+  function setSettingsOpen(open) {
+    els.settingsSub.hidden = !open;
+    els.settingsToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  els.settingsToggle.addEventListener("click", function () {
+    setSettingsOpen(els.settingsSub.hidden);
+  });
+
+  navItems.forEach(function (item) {
+    item.addEventListener("click", function () {
+      selectNav(item);
+      els.toast.hidden = true;
+      if (VIEWS[item.dataset.view]) showToast(VIEWS[item.dataset.view]);
+    });
+  });
+
+  subItems.forEach(function (item) {
+    item.addEventListener("click", function () {
+      if (item.dataset.view === "logout") {
+        window.location.href = "auth.html";
+        return;
+      }
+      selectNav(item);
+      showToast(VIEWS[item.dataset.view]);
+    });
+  });
+
+  /* The account row is the same destination as Settings > General, so it
+     goes there rather than opening a second menu with the same contents. */
+  els.accountBtn.addEventListener("click", function () {
+    setSettingsOpen(true);
+    var general = document.querySelector('.navsub__item[data-view="general"]');
+    if (general) general.click();
   });
 
   /* --------------------------------------------- confirm and cancel */

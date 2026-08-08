@@ -27,54 +27,53 @@
     </div>
 
     <nav class="sidebar__nav" aria-label="Main">
-      <a class="nav-item is-active" href="#">
-        <span class="nav-item__icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
+
+      <button class="nav-item is-active" type="button" data-view="scheduler" aria-current="page">
+        <span class="nav-item__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </span>
-        <span class="nav-item__label">Set Schedule</span>
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-item__icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="nav-item__label">Set Schedule</span>
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-item__icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="nav-item__label">Set Schedule</span>
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-item__icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="nav-item__label">Set Schedule</span>
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-item__icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="nav-item__label">Set Schedule</span>
-      </a>
+        <span class="nav-item__label">Message Scheduler</span>
+      </button>
+
+      <div class="navgroup" id="settingsGroup">
+        <button class="nav-item nav-item--parent" type="button" id="settingsToggle"
+                aria-expanded="false" aria-controls="settingsSub">
+          <span class="nav-item__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9.1 19.4a1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.47-1.08 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9.1a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77v.09a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.47.97Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="nav-item__label">Settings</span>
+          <span class="nav-item__caret" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </button>
+
+        <div class="navsub" id="settingsSub" hidden>
+          <button class="navsub__item" type="button" data-view="general">
+            <span class="navsub__label">General</span>
+            <span class="navsub__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="navsub__item" type="button" data-view="connection">
+            <span class="navsub__label">WhatsApp connection</span>
+            <span class="navsub__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="navsub__item" type="button" data-view="password">
+            <span class="navsub__label">Change Password</span>
+            <span class="navsub__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="navsub__item" type="button" data-view="billing">
+            <span class="navsub__label">Subscription and billing</span>
+            <span class="navsub__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="navsub__item navsub__item--out" type="button" data-view="logout">
+            <span class="navsub__label">Logout</span>
+            <span class="navsub__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 8.5 20.5 12 17 15.5M20 12H9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+        </div>
+      </div>
+
     </nav>
 
-    <button class="account" type="button">
+    <button class="account" type="button" id="accountBtn">
       <span class="account__avatar">
         <img src="assets/avatar-arthur.svg" alt="" />
       </span>
@@ -86,6 +85,8 @@
         <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
     </button>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   </aside>
 

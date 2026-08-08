@@ -152,6 +152,9 @@ svg{ display:block; }
 .sidebar__nav{ display:flex; flex-direction:column; gap:4px; }
 
 .nav-item{
+  width:100%;
+  text-align:left;
+  cursor:pointer;
   display:flex;
   align-items:center;
   gap:12px;
@@ -173,6 +176,73 @@ svg{ display:block; }
 .nav-item__icon svg{ width:100%; height:100%; }
 .nav-item.is-active .nav-item__icon{ color:var(--text-strong); }
 .nav-item__label{ font-size:15px; font-weight:500; }
+
+/* ---- expandable group ---- */
+.nav-item--parent{ padding-right:14px; }
+.nav-item__caret{
+  margin-left:auto;
+  width:16px; height:16px;
+  color:var(--text-faint);
+  transition:transform .2s cubic-bezier(.2,.7,.3,1);
+}
+.nav-item__caret svg{ width:100%; height:100%; }
+.nav-item--parent[aria-expanded="true"] .nav-item__caret{ transform:rotate(180deg); }
+
+/* The rail is the parent's own left edge continued downward, so the
+   children read as belonging to it rather than as a second list. */
+.navsub{
+  position:relative;
+  margin:4px 0 4px 26px;
+  padding-left:12px;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+}
+.navsub[hidden]{ display:none; }
+.navsub::before{
+  content:"";
+  position:absolute;
+  left:0; top:4px; bottom:4px;
+  width:1.5px;
+  border-radius:1px;
+  background:var(--line-strong);
+}
+.navsub__item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  padding:8px 9px;
+  border-radius:var(--r-sm);
+  font-size:13px;
+  font-weight:500;
+  color:var(--text-muted);
+  text-align:left;
+  transition:background .12s ease, color .12s ease;
+}
+.navsub__item:hover{ background:rgba(255,255,255,.7); color:var(--text-strong); }
+.navsub__label{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* the chevron only appears where you are, as in the reference */
+.navsub__chev{
+  margin-left:auto;
+  width:14px; height:14px;
+  flex:0 0 14px;
+  opacity:0;
+  color:var(--text-faint);
+  transition:opacity .12s ease;
+}
+.navsub__chev svg{ width:100%; height:100%; }
+.navsub__item:hover .navsub__chev,
+.navsub__item.is-active .navsub__chev{ opacity:1; }
+.navsub__item.is-active{
+  background:var(--bg-surface);
+  box-shadow:0 0 0 1px var(--line), var(--sh-sm);
+  color:var(--text-strong);
+  font-weight:600;
+}
+.navsub__item--out{ color:#C7452F; }
+.navsub__item--out:hover{ background:rgba(199,69,47,.07); color:#C7452F; }
+.navsub__item--out .navsub__chev{ color:#C7452F; }
 
 .account{
   margin-top:auto;
@@ -201,6 +271,34 @@ svg{ display:block; }
   color:var(--text-strong);
 }
 .account__chevron svg{ width:16px; height:16px; }
+
+/* A screen that does not exist yet says so, rather than swallowing the
+   click and leaving the nav highlighted over the same view. */
+.toast{
+  position:fixed;
+  right:26px;
+  bottom:26px;
+  z-index:80;
+  max-width:290px;
+  padding:10px 14px;
+  background:var(--dark);
+  border-radius:var(--r-md);
+  box-shadow:var(--sh-md);
+  font-size:12.5px;
+  font-weight:500;
+  line-height:1.4;
+  color:#fff;
+  animation:toast-in .22s cubic-bezier(.2,.7,.3,1);
+}
+.toast[hidden]{ display:none; }
+@keyframes toast-in{
+  from{ opacity:0; transform:translateY(8px); }
+  to  { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .toast, .accountmenu{ animation:none; }
+  .account__chevron svg{ transition:none; }
+}
 
 /* ------------------------------------------------------------ workspace */
 .workspace{
