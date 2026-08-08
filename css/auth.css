@@ -86,8 +86,8 @@
    the reference feel like glass on air instead of a panel on a photo. */
 .authcard{
   width:100%;
-  max-width:352px;
-  padding:26px 28px 24px;
+  max-width:408px;
+  padding:30px 34px 26px;
   text-align:center;
   border-radius:var(--r-2xl);
   background:linear-gradient(180deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.94) 46%);
@@ -128,8 +128,8 @@
   color:var(--text-strong);
 }
 .authcard__sub{
-  margin:0 auto 20px;
-  max-width:30ch;
+  margin:0 auto 22px;
+  max-width:34ch;
   font-size:13px;
   line-height:1.5;
   color:var(--text-muted);
