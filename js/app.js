@@ -1028,7 +1028,7 @@
 
   /* Save is enabled by difference, not by touch: typing a character and
      deleting it again should leave the button where it started. */
-  var GEN_FIELDS = ["genName", "genSlug", "genEmail", "genTz"];
+  var GEN_FIELDS = ["genName", "genEmail", "genTz"];
   var genInitial = {};
 
   function genSnapshot() {
