@@ -94,6 +94,23 @@
   <!-- --------------------------- WORKSPACE --------------------------- -->
   <main class="workspace">
 
+    <!-- Nothing can send without a connected number, so this states the
+         consequence rather than just the fact, and cannot be dismissed. -->
+    <div class="wabanner" id="waBanner" role="status">
+      <span class="wabanner__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.6-4A8 8 0 1 1 20 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="wabanner__text">
+        <span class="wabanner__title">WhatsApp isn't connected yet</span>
+        <span class="wabanner__body">Scheduled messages won't go out until you link your WhatsApp Business number.</span>
+      </div>
+      <button class="wabanner__btn" type="button" id="waBannerBtn">Connect WhatsApp</button>
+    </div>
+
+    <div class="workspace__body">
+
     <!-- ......................... SCHEDULE PANEL ........................ -->
     <section class="panel" aria-label="Campaigns">
 

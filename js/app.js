@@ -213,6 +213,8 @@
     waResync: $("#waResync"),
     waDisconnect: $("#waDisconnect"),
     waSync: $("#waSync"),
+    waBanner: $("#waBanner"),
+    waBannerBtn: $("#waBannerBtn"),
     pwForm: $("#pwForm"),
     pwCurrent: $("#pwCurrent"),
     pwNew: $("#pwNew"),
@@ -948,6 +950,7 @@
   /* ------------------------------------------------------ sidebar nav */
 
   var SETTINGS_PANES = ["general", "connection", "password", "billing"];
+  var currentView = "scheduler";
 
   var toastTimer = null;
 
@@ -976,6 +979,7 @@
   /* The scheduler is the panel plus the composer; a settings pane replaces
      both. Only one pane is ever in the tree's flow at a time. */
   function showView(view) {
+    currentView = view;
     var settings = SETTINGS_PANES.indexOf(view) > -1;
 
     els.panel.hidden = settings;
@@ -988,6 +992,7 @@
 
     els.settingsView.scrollTop = 0;
     els.toast.hidden = true;
+    syncBanner();
   }
 
   function setSettingsOpen(open) {
@@ -1075,10 +1080,28 @@
 
   /* --------------------------------------------------- settings: connection */
 
+  /* The banner and the settings pane are two views of one fact, so the fact
+     lives here and both are written from it. */
+  var waConnected = false;
+
   function setConnected(on) {
+    waConnected = on;
     els.waDisconnected.hidden = on;
     els.waConnected.hidden = !on;
+    syncBanner();
   }
+
+  /* Redundant on the connection screen itself — you are already looking at
+     the thing it points to. */
+  function syncBanner() {
+    els.waBanner.hidden = waConnected || currentView === "connection";
+  }
+
+  els.waBannerBtn.addEventListener("click", function () {
+    setSettingsOpen(true);
+    var connection = document.querySelector('.navsub__item[data-view="connection"]');
+    if (connection) connection.click();
+  });
 
   els.waConnect.addEventListener("click", function () {
     els.waConnect.disabled = true;
@@ -1187,6 +1210,7 @@
 
   syncGeneral();
   syncPwReqs();
+  setConnected(false);
 
   /* --------------------------------------------- confirm and cancel */
 
